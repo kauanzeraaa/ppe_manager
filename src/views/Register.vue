@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <h1>Bem vindo a tela de Login!</h1>
+    <h1>Bem vindo a tela de Cadastro!</h1>
 </template>
 
 <style>

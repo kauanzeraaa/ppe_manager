@@ -1,11 +1,5 @@
-<script>
-
-</script>
-
 <template>
-    <h1>Bem vindo a tela Home da Dashboard!</h1>
+    <section>
+        <h1>Dashboard</h1>
+    </section>
 </template>
-
-<style>
-
-</style>

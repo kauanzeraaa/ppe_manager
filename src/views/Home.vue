@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <h1>AAAA</h1>
+    <h1>Bem vindo a tela Home!</h1>
 </template>
 
 <style>

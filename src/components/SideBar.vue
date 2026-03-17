@@ -1,6 +1,9 @@
 <script setup>
+// Importa função e hook necessários do Vue e Vue Router
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
+
+// Importa os ícones para o sidebar
 import homeIcon from '../assets/icons_sidebar/home.png'
 import stockIcon from '../assets/icons_sidebar/stock.png'
 import requestIcon from '../assets/icons_sidebar/request.png'
@@ -9,9 +12,11 @@ import historicIcon from '../assets/icons_sidebar/historic.png'
 import settingsIcon from '../assets/icons_sidebar/settings.png'
 import profileIcon from '../assets/icons_sidebar/profile.png'
 
+// Variáveis para capturar a roda atual e estado do menu
 const route = useRoute()
 const isActive = ref(false)
 
+// Array de opções do menu superior
 const topItems = [
   { label: 'Home', to: '/dashboard', icon: homeIcon, alt: 'Home', color: '#F39C12' },
   { label: 'Estoque', to: '/stock', icon: stockIcon, alt: 'Estoque', color: '#ffa117' },
@@ -20,19 +25,23 @@ const topItems = [
   { label: 'Histórico', to: '/historic', icon: historicIcon, alt: 'Histórico', color: '#F39C12' },
 ]
 
+// Array de opções do menu inferior
 const bottomItems = [
   { label: 'Configuração', to: '/settings', icon: settingsIcon, alt: 'Configuração', color: '#F39C12' },
   { label: 'Perfil', to: '/profile', icon: profileIcon, alt: 'Perfil', color: '#F39C12' },
 ]
 
+// Função que muda o estado do menu para ativo
 function openMenu() {
   isActive.value = true
 }
 
+// Função que muda o estado do menu para inativo
 function closeMenu() {
   isActive.value = false
 }
 
+// Função que verifica se a rota atual é igual à rota do item do menu
 function isCurrentRoute(path) {
   return route.path === path
 }
@@ -40,22 +49,21 @@ function isCurrentRoute(path) {
 
 <template>
   <div class="navigation" :class="{ active: isActive }" @mouseenter="openMenu" @mouseleave="closeMenu">
-    <div class="menuToggle"></div>
-    <ul>
+    <ul class="nav-menu">
       <div class="container-link-top">
         <li v-for="item in topItems" :key="item.to" class="list" :class="{ active: isCurrentRoute(item.to) }">
-          <router-link :to="item.to" :style="{ '--clr': item.color }">
-            <span class="icon"><img :src="item.icon" :alt="item.alt" /></span>
-            <span class="text">{{ item.label }}</span>
+          <router-link :to="item.to" :style="{ '--clr': item.color }" class="nav-link">
+            <span class="nav-icon"><img :src="item.icon" :alt="item.alt" /></span>
+            <span class="nav-text">{{ item.label }}</span>
           </router-link>
         </li>
       </div>
       
       <div class="container-link-bottom">
         <li v-for="item in bottomItems" :key="item.to" class="list" :class="{ active: isCurrentRoute(item.to) }">
-          <router-link :to="item.to" :style="{ '--clr': item.color }">
-            <span class="icon"><img :src="item.icon" :alt="item.alt" /></span>
-            <span class="text">{{ item.label }}</span>
+          <router-link :to="item.to" :style="{ '--clr': item.color }" class="nav-link">
+            <span class="nav-icon"><img :src="item.icon" :alt="item.alt" /></span>
+            <span class="nav-text">{{ item.label }}</span>
           </router-link>
         </li>
       </div>
@@ -64,6 +72,7 @@ function isCurrentRoute(path) {
 </template>
 
 <style>
+/* Container principal da sidebar */
 .navigation {
   position: fixed;
   inset: 40px 0 40px 20px;
@@ -76,30 +85,13 @@ function isCurrentRoute(path) {
   border-radius: 35px;
 }
 
+/* Estado expandido da sidebar */
 .navigation.active {
   width: 250px;
 }
 
-.menuToggle {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 60px;
-  padding: 0 23px;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  cursor: pointer;
-}
-
-.icon img {
-  width: 26px;
-  height: 26px;
-  object-fit: contain;
-}
-
-.navigation ul {
+/* Estrutura do menu de navegacao */
+.nav-menu {
   display: flex;
   flex-direction: column;
   gap: 50px;
@@ -108,7 +100,15 @@ function isCurrentRoute(path) {
   margin-top: 8rem;
 }
 
-.navigation ul li {
+.container-link-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+/* Item de menu */
+.list {
   list-style: none;
   position: relative;
   width: 100%;
@@ -118,12 +118,14 @@ function isCurrentRoute(path) {
   transition: 0.5s;
 }
 
-.navigation ul li.active {
+/* Estado ativo do item */
+.list.active {
   transform: translateX(20px);
   background: #fff;
 }
 
-.navigation ul li::before {
+/* Curvas decorativas do item ativo */
+.list::before {
   content: '';
   position: absolute;
   top: -28px;
@@ -138,11 +140,7 @@ function isCurrentRoute(path) {
   transition: 0.5s;
 }
 
-.navigation ul li.active::before {
-  transform: scale(1);
-}
-
-.navigation ul li::after {
+.list::after {
   content: '';
   position: absolute;
   bottom: -26px;
@@ -157,16 +155,18 @@ function isCurrentRoute(path) {
   transition: 0.5s;
 }
 
-.navigation ul li.active::after {
+.list.active::before,
+.list.active::after {
   transform: scale(1);
 }
 
-.navigation:not(.active) ul li::before,
-.navigation:not(.active) ul li::after {
+.navigation:not(.active) .list::before,
+.navigation:not(.active) .list::after {
   right: 48px;
 }
 
-.navigation ul li a {
+/* Link de navegacao */
+.nav-link {
   position: relative;
   display: flex;
   justify-content: flex-start;
@@ -177,7 +177,8 @@ function isCurrentRoute(path) {
   z-index: 1000;
 }
 
-.navigation ul li a .icon {
+/* Bloco do icone */
+.nav-icon {
   position: relative;
   display: block;
   min-width: 34px;
@@ -191,12 +192,15 @@ function isCurrentRoute(path) {
   transition: 0.5s;
 }
 
-.navigation ul li.active a .icon {
-  background: var(--clr);
-  transform: translateX(0);
+/* Imagem do icone */
+.nav-icon img {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
 }
 
-.navigation ul li a .icon::before {
+/* Efeitos do icone */
+.nav-icon::before {
   content: '';
   position: absolute;
   top: 12px;
@@ -209,11 +213,7 @@ function isCurrentRoute(path) {
   transition: 0.5s;
 }
 
-.navigation ul li.active a .icon::before {
-  opacity: 0.1;
-}
-
-.navigation ul li a .icon::after {
+.nav-icon::after {
   content: '';
   position: absolute;
   top: 10px;
@@ -225,7 +225,8 @@ function isCurrentRoute(path) {
   border-radius: 50%;
 }
 
-.navigation ul li a .text {
+/* Texto do item */
+.nav-text {
   position: relative;
   padding: 0 15px;
   color: #fff;
@@ -237,21 +238,23 @@ function isCurrentRoute(path) {
   transition: 0.5s;
 }
 
-.navigation.active ul li a .text {
+/* Estados ativos de icone e texto */
+.list.active .nav-icon {
+  background: var(--clr);
+  transform: translateX(0);
+}
+
+.list.active .nav-icon::before {
+  opacity: 0.1;
+}
+
+.navigation.active .nav-text {
   visibility: visible;
   opacity: 1;
 }
 
-.navigation ul li.active a .text {
+.list.active .nav-text {
   color: #333;
-
-}
-
-.container-link-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1.5rem;
 }
 
 </style>

@@ -1,17 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// Importing routes
+// Importando as views para as rotas
 import Home from '../views/Home.vue'
-import Contact from '../views/Contact.vue'
-import OurServices from '../views/OurServices.vue'
 import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
 
-// Define route access
+// Define as rotas
 const routes = [
     { path : '/', component: Home },
-    { path : '/contact', component: Contact },
-    { path : '/ourServices', component: OurServices },
-    { path : '/login', component: Login }
+    { path : '/login', component: Login },
+    { path : '/register', component: Register }
 ]
 
 const router  = createRouter({

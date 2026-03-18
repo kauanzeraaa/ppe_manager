@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <h1>Bem vindo a tela de Estoque!</h1>
+    <h1>Welcome to the Inventory screen!</h1>
 </template>
 
 <style>

@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <h1>Bem vindo a tela do Perfil!</h1>
+    <h1>Welcome to the Profile screen!</h1>
 </template>
 
 <style>

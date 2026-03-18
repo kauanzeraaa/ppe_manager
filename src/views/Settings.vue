@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <h1>Bem vindo a tela de Configurações!</h1>
+    <h1>Welcome to the Settings screen!</h1>
 </template>
 
 <style>

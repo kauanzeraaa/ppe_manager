@@ -3,7 +3,7 @@
 </script>
 
 <template>
-    <h1>Bem vindo a tela Historico!</h1>
+    <h1>Welcome to the History screen!</h1>
 </template>
 
 <style>

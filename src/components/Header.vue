@@ -29,7 +29,6 @@
   font-style: normal;
   background-color: #FFFFFF;
   border-radius: 63px;
-
 }
 
 .img_logo {

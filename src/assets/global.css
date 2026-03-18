@@ -17,3 +17,13 @@ body {
     box-sizing: border-box;
     padding: 0;
 }
+
+html {
+    scroll-behavior: smooth; /* faz com que o scroll seja mais fluido */
+    scroll-padding-top: 100px; /* compensa a altura do menu fixo */
+}
+
+section {
+    height: 100vh;
+    padding: 20px;
+}

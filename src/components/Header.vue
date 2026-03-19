@@ -2,7 +2,7 @@
 <template>
     <header class="header">
         <div class="logo_header">
-            <img src="../assets/logo/temporaryLogo.png" class="img_logo" alt="Logo EPI Track">
+            <img src="../assets/logo/temporaryLogo.png" class="img_logo" alt="Logo PPE Manager">
         </div>
         <nav class="navigation_header">
             <a href="#home">Home</a>

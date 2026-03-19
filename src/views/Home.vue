@@ -15,7 +15,7 @@
 
     <div class="body">
 
-        <!-- Section "Home" - aqui é a parte do Miguel, coloquei essa section para, ao clicar em "Home", a tela scollar pra cima -->
+        <!-- Section "Home" - aqui é a parte do Miguel, coloquei essa section para, ao clicar em "Home", a tela scrollar pra cima -->
         <section id="home" class="nav_home">
                 <img src = "../assets/banner/Banner_Image.png" class = "bnr_img" alt = "Home Banner"/>
                     <div class = "bnr_desc">

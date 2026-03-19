@@ -51,6 +51,9 @@
 </template>
 
 <style>
+.nav_home{
+    padding: 0;
+}
 
 /* temporario apenas pra teste visual */
 section {
@@ -60,44 +63,62 @@ section {
 
 .bnr_img{
     position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     z-index: 1;
     width: 100%;
-    padding: 0;
 }
 
 .bnr_desc{
     position: relative;
-    padding: 5%;
     z-index: 2;
     display: flex;
     flex-direction: row;
-    height: 100px;
-    width: 70%;
-    background-color: #ffffffee;
+    height: 250px;
+    width: 80%;
+    background-color: #ffffff;
     border-radius: 30px;
-    top: -350px;
-    left: 150px;
+    bottom: 61%;
+    margin: auto;
 }
+
 .bnr_esq{
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    width: 40%;
-    margin-right: 50px;
+    font-size: large;
+    gap: 5px;
+    width: 50%;
+    
 }
 .bnr_dir{
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    width: 70%;
-    margin-left: 50px;
+    width: 50%;
+}
+
+.titulo_inf{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #E8BB7387;
+        border-radius: 10px;
+        color: #F39C12;
+        width: 400px;
+        margin-top: 15px;
 }
 .texto_esq_bnr{
+    font-family: var(--font-primary);
     text-align: center;
+    width: 70%;
+
 }
 .texto_dir_bnr{
+    font-family: var(--font-secondary);
     text-align: center;
     width: 50%;
 }
@@ -110,6 +131,6 @@ section {
     text-decoration: none;
     border-radius: 90px;
     height: 50px;
-    width: 200px;
+    width: 250px;
 }
 </style>

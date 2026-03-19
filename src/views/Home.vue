@@ -1,10 +1,12 @@
 <!-- Landing Page - primeira página ao acessar nosso site -->
 <script>
     import HeaderTemplate from '../components/Header.vue'
+    import FooterTemplate from '../components/Footer.vue'
 
     export default{
         components:{
-            HeaderTemplate
+            HeaderTemplate,
+            FooterTemplate
         }
     }
 </script>
@@ -43,6 +45,8 @@
         <section id="contact" class="nav_contact">
             <h1>Contact</h1>
         </section>
+
+        <FooterTemplate />
     </div>
 </template>
 

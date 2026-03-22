@@ -214,7 +214,7 @@ section {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #2b4a69;
+  background-color: #2B4A69;
   color: white;
   text-decoration: none;
   border-radius: 90px;
@@ -231,9 +231,9 @@ section {
   font-family: var(--font-secondary);
   font-size: 0.9rem;
   color: #555;
-  max-width: 280px;
+  max-width: 300px;
   line-height: 1.6;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 .nav_contact {
   background: #f0f2f5;
@@ -242,13 +242,13 @@ section {
 .contact-body {
   display: grid;
   grid-template-columns: 1fr 1.8fr;
-  gap: 28px;
+  gap: 30px;
   align-items: flex-end;
 }
 .why-card {
-  background: #1b2d4f;
-  border-radius: 14px;
-  padding: 30px 24px;
+  background: #2B4A69;
+  border-radius: 25px;
+  padding: 20px 18px;
   color: #fff;
 }
 .why-card h3 {
@@ -259,9 +259,9 @@ section {
 }
 .why-item {
   display: flex;
-  gap: 14px;
+  gap: 10px;
   align-items: flex-start;
-  margin-bottom: 22px;
+  margin-bottom: 14px;
 }
 .why-item:last-child {
   margin-bottom: 0;
@@ -277,19 +277,20 @@ section {
   justify-content: center;
 }
 .why-icon .material-icons {
-  font-size: 18px;
+  font-size: 22px;
   color: #adc4e8;
 }
 .why-text h4 {
-  font-size: 0.85rem;
+  font-size: 0.89rem;
   font-weight: 800;
   color: #fff;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .why-text p {
-  font-size: 0.78rem;
+  font-size: 0.6rem;
   color: #8aadcf;
-  line-height: 1.5;
+  line-height: 0.;
+  max-width: 160px
 }
 .form-card {
   background: #ffffff;
@@ -370,7 +371,7 @@ section {
   margin-left: auto;
   margin-top: 8px;
   padding: 13px 34px;
-  background: #1b2d4f;
+  background: #2B4A69;
   color: #fff;
   font-size: 0.88rem;
   font-weight: 700;
@@ -381,7 +382,9 @@ section {
   transition: background 0.2s;
 }
 .btn-submit:hover {
-  background: #223660;
+  background: #3d6a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 .badge {
   display: inline-block;

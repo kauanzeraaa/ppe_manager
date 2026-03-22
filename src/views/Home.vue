@@ -222,16 +222,18 @@ section {
   width: 250px;
 }
 .contact-header h1 {
+  font-family: var(--font-primary);
   font-size: clamp(1.8rem, 3vw, 2.6rem);
   font-weight: 900;
   margin-bottom: 10px;
 }
 .contact-header p {
+  font-family: var(--font-secondary);
   font-size: 0.9rem;
   color: #555;
   max-width: 280px;
   line-height: 1.6;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 .nav_contact {
   background: #f0f2f5;
@@ -241,17 +243,7 @@ section {
   display: grid;
   grid-template-columns: 1fr 1.8fr;
   gap: 28px;
-  align-items: start;
-}
-.nav_contact {
-  background: #f0f2f5;
-  padding: 60px 5% 80px;
-}
-.contact-body {
-  display: grid;
-  grid-template-columns: 1fr 1.8fr;
-  gap: 28px;
-  align-items: start;
+  align-items: flex-end;
 }
 .why-card {
   background: #1b2d4f;
@@ -374,6 +366,8 @@ section {
   min-height: 110px;
 }
 .btn-submit {
+  display: block;
+  margin-left: auto;
   margin-top: 8px;
   padding: 13px 34px;
   background: #1b2d4f;
@@ -393,10 +387,27 @@ section {
   display: inline-block;
   background: #fde8b8;
   color: #c47c00;
-  font-size: 1.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   padding: 5px 14px;
   border-radius: 6px;
   margin-bottom: 18px;
+}
+@media (max-width: 768px) {
+  .nav_contact {
+    padding: 40px 5% 60px;
+  }
+
+  .contact-body {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-card {
+    padding: 24px 20px;
+  }
 }
 </style>

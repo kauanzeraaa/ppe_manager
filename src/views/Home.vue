@@ -229,44 +229,47 @@ section {
 /* ── Contact ── */
 .contact-header h1 {
   font-family: var(--font-primary);
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-  font-weight: 900;
+  font-size: clamp(1.8rem, 3vw, 2.9rem);
+  color: #383838;
+  font-weight: 400;
   margin-bottom: 10px;
 }
 
 .contact-header p {
   font-family: var(--font-secondary);
-  font-size: 0.9rem;
-  color: #555;
+  font-size: 1.2rem;
+  color: #383838;
   max-width: 300px;
-  line-height: 1.6;
-  margin-bottom: 8px;
+  line-height: 1.4;
+  margin-bottom: 10px;
 }
 
 .nav_contact {
   background: #f0f2f5;
-  padding: 60px 5% 80px;
+  padding: 60px 5% 30px;
+  height: auto; /* ----- Faz a altura se ajustar ao conteúdo*/
 }
 
 .contact-body {
   display: grid;
-  grid-template-columns: 1fr 1.8fr;
-  gap: 30px;
+  grid-template-columns: 0.6fr 1.8fr;
+  gap: 60px;
   align-items: flex-end;
 }
 
 .why-card {
   background: #2B4A69;
   border-radius: 25px;
-  padding: 20px 18px;
+  padding: 10px 30px;
   color: #fff;
 }
 
 .why-card h3 {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #adc4e8;
-  margin-bottom: 24px;
+  font-family: var(--font-secondary);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 10px;
   text-align: center;
 }
 
@@ -300,20 +303,20 @@ section {
 .why-text h4 {
   font-size: 0.89rem;
   font-weight: 800;
-  color: #fff;
+  color: #ffffff;
   margin-bottom: 2px;
 }
 
 .why-text p {
   font-size: 0.75rem;
-  color: #8aadcf;
+  color: #ffffff;
   line-height: 1.4;
   max-width: 160px;
 }
 
 .form-card {
   background: #ffffff;
-  border-radius: 14px;
+  border-radius: 22px;
   padding: 36px 34px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
@@ -336,16 +339,17 @@ section {
 }
 
 .form-group label {
-  font-size: 0.8rem;
+  font-family: var(--font-secondary);
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #1a1a2e;
+  color: #343434;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   font-size: 0.85rem;
-  color: #555;
+  color: #343434;
   background: #f8f9fc;
   border: 1.5px solid #dde2ea;
   border-radius: 8px;
@@ -410,7 +414,7 @@ section {
   border-radius: 8px;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.2s;
+  transition: background 0.3s;
 }
 
 .btn-submit:hover {
@@ -423,7 +427,7 @@ section {
   display: inline-block;
   background: #fde8b8;
   color: #c47c00;
-  font-size: 0.78rem;
+  font-size: 1.2rem;
   font-weight: 700;
   padding: 5px 14px;
   border-radius: 6px;

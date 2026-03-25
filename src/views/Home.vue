@@ -46,9 +46,26 @@ export default {
     </section>
 
     <!-- Section "Our Services" -->
-    <section id="services" class="nav_services">
-      <h1>Our Services</h1>
-    </section>
+    <section id="about" class="nav_about">
+  <div class="about-header">
+    <span class="badge">Sobre</span>
+    <h1 class="services">Rastreabilidade Completa dos Produtos</h1>
+    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+  </div>
+
+  <div class="about-body">
+    <div class="about-content">
+      <button class="btn-account">Acesse sua Conta</button>
+    </div>
+
+    <div class="about-image">
+      <img src="@/assets/sua-imagem.png" alt="Trabalhador">
+    </div>
+
+    <div class="about-accordion">
+      </div>
+  </div>
+</section>
 
     <!-- Section "Contact" -->
     <section id="contact" class="nav_contact">
@@ -449,6 +466,26 @@ section {
 
   .form-card {
     padding: 24px 20px;
+  }
+}
+
+.about-header {
+  text-align: center; /* Centraliza o cabeçalho igual ao "Contato" */
+  margin-bottom: 40px;
+}
+
+.about-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Divide em 3 colunas iguais */
+  gap: 20px;
+  align-items: center;
+}
+
+/* Garante que no mobile elas fiquem uma abaixo da outra, 
+seguindo o padrão que você já tem no VS Code */
+@media (max-width: 768px) {
+  .about-body {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -47,7 +47,7 @@ export default {
 
     <!-- Section "Our Services" -->
     <section id="services" class="nav_services">
-      <h1>Our Services</h1>
+      <h1 class="title-services">Our Services</h1>
     </section>
 
     <!-- Section "Contact" -->
@@ -450,5 +450,13 @@ section {
   .form-card {
     padding: 24px 20px;
   }
+}
+
+.nav_services {
+  background-color: red;
+}
+
+.title-services {
+  color: green;
 }
 </style>

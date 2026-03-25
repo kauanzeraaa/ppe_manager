@@ -18,11 +18,7 @@ export default {
   <div class="body">
     <!-- Section "Home" - aqui é a parte do Miguel, coloquei essa section para, ao clicar em "Home", a tela scrollar pra cima -->
     <section id="home" class="nav_home">
-      <img
-        src="../assets/banner/Banner_Image.png"
-        class="bnr_img"
-        alt="Home Banner"
-      />
+      <img src="../assets/banner/Banner_Image.png" class="bnr_img" alt="Home Banner" />
       <div class="bnr_desc">
         <div class="bnr_esq">
           <div class="titulo_inf">
@@ -47,25 +43,22 @@ export default {
 
     <!-- Section "Our Services" -->
     <section id="about" class="nav_about">
-  <div class="about-header">
-    <span class="badge">Sobre</span>
-    <h1 class="services">Rastreabilidade Completa dos Produtos</h1>
-    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
-  </div>
-
-  <div class="about-body">
-    <div class="about-content">
-      <button class="btn-account">Acesse sua Conta</button>
-    </div>
-
-    <div class="about-image">
-      <img src="@/assets/sua-imagem.png" alt="Trabalhador">
-    </div>
-
-    <div class="about-accordion">
+      <div class="about-header">
+        <span class="badge">Sobre</span>
+        <h1 class="services">Rastreabilidade Completa dos Produtos</h1>
+        <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+        <button class="btn-account">Acesse sua Conta</button>
       </div>
-  </div>
-</section>
+
+      <div class="about-image">
+        <img class="image" src="../assets/banner/Banner_Image.png" alt="Trabalhador">
+      </div>
+
+      <div>
+
+
+      </div>
+    </section>
 
     <!-- Section "Contact" -->
     <section id="contact" class="nav_contact">
@@ -118,11 +111,7 @@ export default {
             </div>
             <div class="form-group">
               <label for="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                placeholder="Enter your email...."
-              />
+              <input type="email" id="email" placeholder="Enter your email...." />
             </div>
           </div>
 
@@ -143,10 +132,7 @@ export default {
 
           <div class="form-group form-group-full">
             <label for="mensagem">Mensagem</label>
-            <textarea
-              id="mensagem"
-              placeholder="Leave your message...."
-            ></textarea>
+            <textarea id="mensagem" placeholder="Leave your message...."></textarea>
           </div>
 
           <button class="btn-submit" type="button">Enviar Mensagem</button>
@@ -264,7 +250,8 @@ section {
 .nav_contact {
   background: #f0f2f5;
   padding: 60px 5% 30px;
-  height: auto; /* ----- Faz a altura se ajustar ao conteúdo*/
+  height: auto;
+  /* ----- Faz a altura se ajustar ao conteúdo*/
 }
 
 .contact-body {
@@ -469,14 +456,28 @@ section {
   }
 }
 
+.nav_about {
+  display: flex;
+  flex-direction: row;
+  gap: 3rem;
+  justify-content: center;
+}
+
+.image {
+  width: 15rem;
+  height: auto;
+}
+
 .about-header {
-  text-align: center; /* Centraliza o cabeçalho igual ao "Contato" */
+  text-align: center;
+  /* Centraliza o cabeçalho igual ao "Contato" */
   margin-bottom: 40px;
 }
 
 .about-body {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr; /* Divide em 3 colunas iguais */
+  grid-template-columns: 1fr 1fr 1fr;
+  /* Divide em 3 colunas iguais */
   gap: 20px;
   align-items: center;
 }

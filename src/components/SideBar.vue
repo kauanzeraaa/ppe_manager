@@ -55,7 +55,7 @@ function isCurrentRoute(path) {
           <router-link :to="item.to" :style="{ '--clr': item.color }" class="nav-link">
             <span class="nav-icon"><img :src="item.icon" :alt="item.alt" /></span>
             <span class="nav-text">{{ item.label }}</span>
-          </router-link>
+          </router-link>    
         </li>
       </div>
       

@@ -59,7 +59,7 @@ export default {
     </div>
 
     <div class="about-image">
-      <img src="@/assets/sua-imagem.png" alt="Trabalhador">
+      <img src="../assets/sua-imagem.png" alt="Trabalhador">
     </div>
 
     <div class="about-accordion">

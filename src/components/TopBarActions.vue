@@ -8,12 +8,11 @@ const router = useRouter()
 // Variável para controlar a exibição do modal de logout
 const showLogoutModal = ref(false)
 
-// Função para abrir o modal de logout
+// Função para abrir o modal de logout e fechar o modal ao clicar fora dele
 function openLogoutModal() {
     showLogoutModal.value = true
 }
 
-// Função para fechar o modal de logout
 function closeLogoutModal() {
     showLogoutModal.value = false
 }
@@ -27,11 +26,6 @@ function confirmLogout() {
 
 <template>
     <section class="buttons">
-        <button class="button-notification">
-            <span class="icon">
-                <img src="../assets/icons_actions/bell.png" alt="Notification Icon">
-            </span>
-        </button>
         <router-link to="/settings" class="button-configuration">
             <span class="icon">
                 <img src="../assets/icons_actions/settings.png" alt="Settings Icon">
@@ -41,7 +35,7 @@ function confirmLogout() {
             <span class="icon">
                 <img src="../assets/icons_actions/exit-alt.png" alt="Exit Icon">
             </span>
-        </button>
+        </button>   
 
         <!-- Modal de Logout -->
         <div v-if="showLogoutModal" class="modal-backdrop" @click="closeLogoutModal">
@@ -61,6 +55,7 @@ function confirmLogout() {
 </template>
 
 <style scoped>
+    /* Estilos dos botões */
     .buttons {
         position: fixed;
         top: 20px;
@@ -80,12 +75,8 @@ function confirmLogout() {
         text-decoration: none;
     }
 
-    .button-notification {
-        background-color: var(--color-orange);
-    }
-
     .button-configuration {
-        background-color: var(--color-blue);
+        background-color: var(--color-orange);
     }
 
     .button-exit {
@@ -105,6 +96,7 @@ function confirmLogout() {
         height: 30px;
     }
 
+    /* Estilos do modal */
     .modal-backdrop {
         position: fixed;
         inset: 0;
@@ -180,7 +172,4 @@ function confirmLogout() {
         background: var(--color-blue-dark);
         color: #fff;
     }
-
-
-    
 </style>

@@ -6,6 +6,7 @@ import { useRoute } from 'vue-router'
 // Importa o componente 
 import SideBar from './components/SideBar.vue'
 import TopBarActions from './components/TopBarActions.vue'
+import ManualButton from './components/ManualButton.vue'
 
 // Variável para capturar a rota atual 
 const route = useRoute();
@@ -33,6 +34,7 @@ const showTopBarActions = computed(() => sidebarRoutes.includes(route.path))
     <SideBar v-if="showSidebar" />
     <main class="app-content">
       <TopBarActions v-if="showTopBarActions" />
+      <ManualButton />
       <router-view />
     </main>
   </div>

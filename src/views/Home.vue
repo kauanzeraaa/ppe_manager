@@ -50,7 +50,7 @@ export default {
   <div class="about-header">
     <span class="badge">Sobre</span>
     <h1 class="services">Rastreabilidade Completa dos Produtos</h1>
-    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s text ever since the 1500s</p>
   </div>
 
   <div class="about-body">

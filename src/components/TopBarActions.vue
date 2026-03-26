@@ -9,16 +9,16 @@
                 <img src="../assets/icons_actions/bell.png" alt="Notification Icon">
             </span>
         </button>
-        <button class="button-configuration">
+        <router-link to="/settings" class="button-configuration">
             <span class="icon">
                 <img src="../assets/icons_actions/settings.png" alt="Settings Icon">
             </span>
-        </button>
-        <button class="button-exit">
+        </router-link>
+        <router-link to="/login" class="button-exit">
             <span class="icon">
                 <img src="../assets/icons_actions/exit-alt.png" alt="Exit Icon">
             </span>
-        </button>
+        </router-link>
     </section>
 </template>
 
@@ -49,6 +49,14 @@
 
     .button-exit {
         background-color: var(--color-blue-dark);
+    }
+
+    .icon {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .icon img {

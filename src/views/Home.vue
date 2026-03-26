@@ -47,23 +47,48 @@ export default {
 
     <!-- Section "Our Services" -->
     <section id="about" class="nav_about">
-  <div class="about-header">
-    <span class="badge">Sobre</span>
-    <h1 class="services">Rastreabilidade Completa dos Produtos</h1>
-    <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s text ever since the 1500s</p>
-  </div>
+      <div class="about-grid-container">
 
-  <div class="about-body">
-    <div class="about-content">
+      <div class="col-text">
+      <span class="badge">Sobre</span>
+      <h1 class="main-title">Rastreabilidade <br> Completa dos Produtos</h1>
+      <p class="description">
+        Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
+        Lorem Ipsum has been the industry's standard dummy text ever since the 1500s.
+      </p>
       <button class="btn-account">Acesse sua Conta</button>
     </div>
 
-    <div class="about-image">
-      <img src="../assets/sua-imagem.png" alt="Trabalhador">
+    <div class="col-image">
+      <img src="../assets/sua-about.png" alt="Trabalhador Industrial">
     </div>
 
-    <div class="about-accordion">
+    <div class="col-accordion">
+      <div class="acc-item active">
+        <div class="acc-header">
+          <span>Nossa Missão</span>
+          <span class="icon-up">▲</span>
+        </div>
+        <p class="acc-content">
+          Lorem Ipsum is simply dummy text of the printing and typesetting industry.
+        </p>
       </div>
+
+      <div class="acc-item">
+        <div class="acc-header">
+          <span>Nossa Visão</span>
+          <div class="circle-icon">▼</div>
+        </div>
+      </div>
+      
+      <div class="acc-item">
+        <div class="acc-header">
+          <span>Nosso Valor</span>
+          <div class="circle-icon">▼</div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 

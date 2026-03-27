@@ -478,62 +478,54 @@ section {
 
 .about-container {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
-  gap: 60pp;
+  grid-template-columns: 1.2fr 1fr 1fr; 
+  gap: 60px;
+  padding: 100px 5%;
   align-items: center;
-  padding: 100px 50px;
-  max-width: 1400px;
-  margin: 0 auto;
+  background-color: #fff;
 }
 
 .badge {
-  background-color: #f3e5c2;
-  color: #d4a017;
-  padding: 8px 15px;
-  border-radius: 8px;
+  background-color: #fceecb;
+  color: #c99c33;
+  padding: 5px 15px;
+  border-radius: 5px;
   font-weight: bold;
 }
 
 .main-title {
-font-size: 40px;
-color:#333;
-margin: 25px 0;
-line-height: 1.1;
-}
-
-.description {
-  color: #777;
-  font-size: 15px;
-  margin-bottom: 30px;
+  font-size: 36px;
+  font-weight: 800;
+  margin: 20px 0;
+  color: #222;
 }
 
 .btn-account {
-  background-color: #33495e;
+  background-color: #34495e;
   color: white;
-  padding: 15px 35px;
-  border: nome;
+  padding: 12px 30px;
   border-radius: 50px;
+  border: none;
   font-weight: bold;
-  cursor: pointer;
-}
-.col-imagei img {
-  width: 100%;
-  border-radius: 25px;
-  box-shadow: 0 100px 20px rgba(0,0,0,0.1);
 }
 
-.card-item {
-  background: #fff;
-  border: 1px solid #eee;
+.main-img {
+  width: 100%;
+  border-radius: 20px;
+}
+
+.card {
+  background-color: #fff;
   border-radius: 20px;
   padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  margin-bottom: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  border: 1px solid #f0f0f0;
+  color: #333;
 }
-
-.card-item.active {
-  background-color: #34495e;
-  color: #fff;
+.card.active {
+  background-color: #2d4356 !important; /* Azul escuro */
+  color: #ffffff !important;           /* Texto branco */
 }
 
 .card-header {
@@ -541,23 +533,28 @@ line-height: 1.1;
   justify-content: space-between;
   align-items: center;
   font-weight: bold;
+  font-size: 18px;
 }
 
-.orange-circle {
+.icon-orange {
   background-color: #f39c12;
   color: white;
-  width: 26px;
-  height: 26px;
+  width: 25px;
+  height: 25px;
   border-radius: 50%;
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-size: 10px;
+  justify-content: center;
 }
 
-.card-content {
-  margin-top: 15px;
-  font-size: 14px;
-  opacity: 0.9
+.icon-white {
+  background-color: white;
+  color: #2d4356;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

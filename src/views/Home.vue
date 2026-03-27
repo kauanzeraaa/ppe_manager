@@ -47,9 +47,9 @@ export default {
 
     <!-- Section "Our Services" -->
     <section id="about" class="nav_about">
-      <div class="about-grid-container">
+  <div class="about-grid-container">
 
-      <div class="col-text">
+    <div class="col-text">
       <span class="badge">Sobre</span>
       <h1 class="main-title">Rastreabilidade <br> Completa dos Produtos</h1>
       <p class="description">
@@ -476,7 +476,7 @@ section {
   margin-bottom: 18px;
 }
 
-.about-grid-container {
+.about-container {
   display: grid;
   grid-template-columns: 1.2fr 1fr 1fr;
   gap: 60pp;
@@ -532,7 +532,7 @@ line-height: 1.1;
 }
 
 .card-item.active {
-  background-color: #34495e; /* Azul escuro */
+  background-color: #34495e;
   color: #fff;
 }
 

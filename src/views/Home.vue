@@ -532,7 +532,7 @@ line-height: 1.1;
 }
 
 .card-item.active {
-  background-color: #34495e;
+  background-color: #34495e; /* Azul escuro */
   color: #fff;
 }
 

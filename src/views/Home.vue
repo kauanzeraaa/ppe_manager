@@ -476,41 +476,45 @@ section {
   margin-bottom: 18px;
 }
 
-@media (max-width: 768px) {
-  .nav_contact {
-    padding: 40px 5% 60px;
-  }
-
-  .contact-body {
-    grid-template-columns: 1fr;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .form-card {
-    padding: 24px 20px;
-  }
-}
-
-.about-header {
-  text-align: center; /* Centraliza o cabeçalho igual ao "Contato" */
-  margin-bottom: 40px;
-}
-
-.about-body {
+.about-grid-container {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr; /* Divide em 3 colunas iguais */
-  gap: 20px;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 60pp;
   align-items: center;
+  padding: 100px 50px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-/* Garante que no mobile elas fiquem uma abaixo da outra, 
-seguindo o padrão que você já tem no VS Code */
-@media (max-width: 768px) {
-  .about-body {
-    grid-template-columns: 1fr;
-  }
+.badge {
+  background-color: #f3e5c2;
+  color: #d4a017;
+  padding: 8px 15px;
+  border-radius: 8px;
+  font-weight: bold;
 }
+
+.main-title {
+font-size: 40px;
+color:#333;
+margin: 25px 0;
+line-height: 1.1;
+}
+
+.description {
+  color: #777;
+  font-size: 15px;
+  margin-bottom: 30px;
+}
+
+.btn-account {
+  background-color: #33495e;
+  color: white;
+  padding: 15px 35px;
+  border: nome;
+  border-radius: 50px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
 </style>

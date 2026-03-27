@@ -516,5 +516,48 @@ line-height: 1.1;
   font-weight: bold;
   cursor: pointer;
 }
+.col-imagei img {
+  width: 100%;
+  border-radius: 25px;
+  box-shadow: 0 100px 20px rgba(0,0,0,0.1);
+}
 
+.card-item {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.card-item.active {
+  background-color: #34495e;
+  color: #fff;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+
+.orange-circle {
+  background-color: #f39c12;
+  color: white;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10px;
+}
+
+.card-content {
+  margin-top: 15px;
+  font-size: 14px;
+  opacity: 0.9
+}
 </style>

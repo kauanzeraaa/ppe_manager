@@ -476,85 +476,96 @@ section {
   margin-bottom: 18px;
 }
 
-.about-container {
+.about-grid-container {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr; 
+  grid-template-columns: 1.2fr 1fr 1fr;
   gap: 60px;
-  padding: 100px 5%;
   align-items: center;
-  background-color: #fff;
+  padding: 100px 50px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .badge {
-  background-color: #fceecb;
-  color: #c99c33;
-  padding: 5px 15px;
-  border-radius: 5px;
+  background-color: #f3e5c2;
+  color: #d4a017;
+  padding: 8px 15px;
+  border-radius: 8px;
   font-weight: bold;
+  display: inline-block;
 }
 
 .main-title {
-  font-size: 36px;
+  font-size: 40px;
+  color: #333;
+  margin: 25px 0;
+  line-height: 1.1;
   font-weight: 800;
-  margin: 20px 0;
-  color: #222;
+}
+
+.description {
+  color: #777;
+  font-size: 15px;
+  margin-bottom: 30px;
 }
 
 .btn-account {
   background-color: #34495e;
   color: white;
-  padding: 12px 30px;
-  border-radius: 50px;
+  padding: 15px 35px;
   border: none;
+  border-radius: 50px;
   font-weight: bold;
+  cursor: pointer;
 }
 
-.main-img {
+.col-image img {
   width: 100%;
-  border-radius: 20px;
+  border-radius: 25px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  display: block;
 }
 
-.card {
-  background-color: #fff;
+.acc-item {
+  background: #fff;
+  border: 1px solid #eee;
   border-radius: 20px;
   padding: 20px;
-  margin-bottom: 15px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  border: 1px solid #f0f0f0;
-  color: #333;
-}
-.card.active {
-  background-color: #2d4356 !important; /* Azul escuro */
-  color: #ffffff !important;           /* Texto branco */
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  transition: 0.3s;
 }
 
-.card-header {
+.acc-item.active {
+  background-color: #34495e !important;
+  color: white !important;
+}
+
+.acc-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: bold;
-  font-size: 18px;
 }
-
-.icon-orange {
+.circle-icon {
   background-color: #f39c12;
   color: white;
-  width: 25px;
-  height: 25px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  font-size: 10px;
 }
 
-.icon-white {
-  background-color: white;
-  color: #2d4356;
-  width: 25px;
-  height: 25px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.acc-content {
+  margin-top: 15px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.acc-item.active .icon-up {
+  color: white;
 }
 </style>

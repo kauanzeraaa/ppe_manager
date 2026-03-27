@@ -447,10 +447,10 @@ section {
   margin-bottom: 18px;
 }
 
-@media (max-width: 768px) {
-  .nav_contact {
+@media (max-width: 768px) 
+  .nav_contacte
     padding: 40px 5% 60px;
-  }
+  
 
   .contact-body {
     grid-template-columns: 1fr;
@@ -463,7 +463,6 @@ section {
   .form-card {
     padding: 24px 40px;
   }
-}
 
 .about-header {
   text-align: center; /* Centraliza o cabeçalho igual ao "Contato" */
@@ -471,17 +470,95 @@ section {
 }
 
 .about-body {
+.about-grid-container {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr; /* Divide em 3 colunas iguais */
-  gap: 20px;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 60pp;
   align-items: center;
+  padding: 100px 50px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* Garante que no mobile elas fiquem uma abaixo da outra, 
 seguindo o padrão que  já tem no VS Code */
 @media (max-width: 768px) {
-  .about-body {
+.about-body {
     grid-template-columns: 1fr;
   }
+
+.badge {
+  background-color: #f3e5c2;
+  color: #d4a017;
+  padding: 8px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.main-title {
+font-size: 40px;
+color:#333;
+margin: 25px 0;
+line-height: 1.1;
+}
+
+.description {
+  color: #777;
+  font-size: 15px;
+  margin-bottom: 30px;
+}
+
+.btn-account {
+  background-color: #33495e;
+  color: white;
+  padding: 15px 35px;
+  border: nome;
+  border-radius: 50px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.col-imagei img {
+  width: 100%;
+  border-radius: 25px;
+  box-shadow: 0 100px 20px rgba(0,0,0,0.1);
+}
+
+.card-item {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.card-item.active {
+  background-color: #34495e; /* Azul escuro */
+  color: #fff;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+
+.orange-circle {
+  background-color: #f39c12;
+  color: white;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10px;
+}
+
+.card-content {
+  margin-top: 15px;
+  font-size: 14px;
+  opacity: 0.9;
 }
 </style>

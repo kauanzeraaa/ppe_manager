@@ -5,6 +5,8 @@ import { useRoute } from 'vue-router'
 
 // Importa o componente 
 import SideBar from './components/SideBar.vue'
+import TopBarActions from './components/TopBarActions.vue'
+import ManualButton from './components/ManualButton.vue'
 
 // Variável para capturar a rota atual 
 const route = useRoute();
@@ -22,12 +24,17 @@ const sidebarRoutes = [
 
 // Variável computada para determinar se o SideBar deve ser exibido com base na rota atual
 const showSidebar = computed(() => sidebarRoutes.includes(route.path))
+
+// Variável computada para determinar se o TopBarActions deve ser exibido com base na rota atual
+const showTopBarActions = computed(() => sidebarRoutes.includes(route.path))
 </script>
 
 <template>
   <div class="app-shell" :class="{ 'app-shell--with-sidebar': showSidebar }">
     <SideBar v-if="showSidebar" />
     <main class="app-content">
+      <TopBarActions v-if="showTopBarActions" />
+      <ManualButton />
       <router-view />
     </main>
   </div>
@@ -35,7 +42,15 @@ const showSidebar = computed(() => sidebarRoutes.includes(route.path))
 
 <style scoped>
 .app-shell {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .app-shell--with-sidebar .app-content {

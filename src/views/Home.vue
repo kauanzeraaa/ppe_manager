@@ -95,6 +95,7 @@ export default {
           </div>
         </div>
       </div>
+
     </div>
 
     <div class="form-card">
@@ -135,6 +136,7 @@ export default {
 </section>
 <FooterTemplate />
 </div>
+
 </template>
 
 <style>
@@ -460,6 +462,26 @@ section {
 
   .form-card {
     padding: 24px 40px;
+  }
+}
+
+.about-header {
+  text-align: center; /* Centraliza o cabeçalho igual ao "Contato" */
+  margin-bottom: 40px;
+}
+
+.about-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr; /* Divide em 3 colunas iguais */
+  gap: 20px;
+  align-items: center;
+}
+
+/* Garante que no mobile elas fiquem uma abaixo da outra, 
+seguindo o padrão que  já tem no VS Code */
+@media (max-width: 768px) {
+  .about-body {
+    grid-template-columns: 1fr;
   }
 }
 </style>

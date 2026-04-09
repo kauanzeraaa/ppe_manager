@@ -18,20 +18,20 @@ export default {
   <div class="body">
     <!-- Section "Home" - aqui é a parte do Miguel, coloquei essa section para, ao clicar em "Home", a tela scrollar pra cima -->
     <section id="home" class="nav_home">
-      <img
-        src="../assets/banner/Banner_Image.png"
-        class="bnr_img"
-        alt="Home Banner"
-      />
-      <div class="bnr_desc">
-        <div class="bnr_esq">
-          <div class="titulo_inf">
-            <p>Equipamento de Proteção Individual</p>
-          </div>
-          <h1 class="texto_esq_bnr">
-            Faça o Gerenciamento do Seu Estoque de EPIs
-          </h1>
-        </div>
+            <img
+            src="../assets/banner/Banner_Image.png"
+            class="bnr_img"
+            alt="Home Banner"
+            />
+            <div class="bnr_desc">
+                <div class="bnr_esq">
+                    <div class="titulo_inf">
+                    <p>Equipamento de Proteção Individual</p>
+                    </div>
+                <h1 class="texto_esq_bnr">
+                    Faça o Gerenciamento do Seu Estoque de EPIs
+                </h1>
+            </div>
         <div class="bnr_dir">
           <p class="texto_dir_bnr">
             Lorem Ipsum is simply dummy text of the printing and typesetting
@@ -42,7 +42,7 @@ export default {
             Acesse sua conta
           </router-link>
         </div>
-      </div>
+        </div>
     </section>
 
     <!-- Section "Our Services" -->
@@ -193,26 +193,43 @@ section {
   padding: 20px;
 }
 
+.nav_home {
+    position: relative;
+    display: grid;
+    flex-direction:column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    width: 100%;
+    margin-top: 10%;
+}
+
 .bnr_img {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1;
-  width: 100%;
+    grid-area: 1/1;
+
+    position: inherit;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    margin-top: -15%;
+    width: 100%;
 }
 
 .bnr_desc {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: row;
-  height: 250px;
-  width: 80%;
-  background-color: #ffffff;
-  border-radius: 30px;
-  bottom: 61%;
-  margin: auto;
+    z-index: 2;
+    grid-area: 1/1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    height: 250px;
+    width: 80%;
+    background-color: #ffffff;
+    border-radius: 30px;
+    margin-bottom: 20%;
+    margin: 10%;
 }
 
 .bnr_esq {

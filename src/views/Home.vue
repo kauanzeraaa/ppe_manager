@@ -477,6 +477,13 @@ section {
 }
 
 @media (max-width: 768px) {
+  
+  .acc_ent:hover{
+    background: #3d6a8a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
   .nav_contact {
     padding: 40px 5% 60px;
   }

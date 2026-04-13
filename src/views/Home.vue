@@ -211,7 +211,7 @@ section {
   width: 80%;
   background-color: #ffffff;
   border-radius: 30px;
-  bottom: 61%;
+  bottom: 50%;
   margin: auto;
 }
 
@@ -248,12 +248,14 @@ section {
   font-family: var(--font-primary);
   text-align: center;
   width: 70%;
+  font-size: 36px;
 }
 
 .texto_dir_bnr {
   font-family: var(--font-secondary);
   text-align: center;
-  width: 50%;
+  width: 70%;
+  font-size: 20px;
 }
 
 .acc_ent {
@@ -266,6 +268,12 @@ section {
   border-radius: 90px;
   height: 50px;
   width: 250px;
+}
+
+.acc_ent:hover {
+  background: #3d6a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* ── Contact ── */
@@ -477,12 +485,45 @@ section {
 }
 
 @media (max-width: 768px) {
-  
-  .acc_ent:hover{
-    background: #3d6a8a;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    }
+
+  /* trabalhando na responsividade */
+  .bnr_desc {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  height: 125px;
+  width: 90%;
+  background-color: #ffffff;
+  border-radius: 30px;
+  margin-top: 30%;
+}
+
+.titulo_inf {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #e8bb7387;
+  border-radius: 10px;
+  color: #f39c12;
+  margin-top: 15px;
+}
+
+.texto_esq_bnr {
+  font-family: var(--font-primary);
+  text-align: center;
+  width: 70%;
+  font-size: 36px;
+}
+
+.texto_dir_bnr {
+  font-family: var(--font-secondary);
+  text-align: center;
+  width: 70%;
+  font-size: 20px;
+}
+
+/* ^ */
 
   .nav_contact {
     padding: 40px 5% 60px;

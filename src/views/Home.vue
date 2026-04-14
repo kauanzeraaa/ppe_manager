@@ -217,6 +217,18 @@ section {
 }
 
 .bnr_desc {
+
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  height: 250px;
+  width: 80%;
+  background-color: #ffffff;
+  border-radius: 30px;
+  bottom: 50%;
+  margin: auto;
+=======
     z-index: 2;
     grid-area: 1/1;
     position: relative;
@@ -230,6 +242,7 @@ section {
     border-radius: 30px;
     margin-bottom: 20%;
     margin: 10%;
+
 }
 
 .bnr_esq {
@@ -265,12 +278,14 @@ section {
   font-family: var(--font-primary);
   text-align: center;
   width: 70%;
+  font-size: 36px;
 }
 
 .texto_dir_bnr {
   font-family: var(--font-secondary);
   text-align: center;
-  width: 50%;
+  width: 70%;
+  font-size: 20px;
 }
 
 .acc_ent {
@@ -283,6 +298,12 @@ section {
   border-radius: 90px;
   height: 50px;
   width: 250px;
+}
+
+.acc_ent:hover {
+  background: #3d6a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* ── Contact ── */
@@ -493,6 +514,52 @@ section {
   margin-bottom: 18px;
 }
 
+
+@media (max-width: 768px) {
+
+  /* trabalhando na responsividade */
+  .bnr_desc {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  height: 125px;
+  width: 90%;
+  background-color: #ffffff;
+  border-radius: 30px;
+  margin-top: 30%;
+}
+
+.titulo_inf {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #e8bb7387;
+  border-radius: 10px;
+  color: #f39c12;
+  margin-top: 15px;
+}
+
+.texto_esq_bnr {
+  font-family: var(--font-primary);
+  text-align: center;
+  width: 70%;
+  font-size: 36px;
+}
+
+.texto_dir_bnr {
+  font-family: var(--font-secondary);
+  text-align: center;
+  width: 70%;
+  font-size: 20px;
+}
+
+/* ^ */
+
+  .nav_contact {
+    padding: 40px 5% 60px;
+  }
+=======
 .about-grid-container {
   display: grid;
   grid-template-columns: 1.2fr 1fr 1fr;
@@ -525,6 +592,7 @@ section {
   font-size: 15px;
   margin-bottom: 30px;
 }
+
 
 .btn-account {
   background-color: #34495e;

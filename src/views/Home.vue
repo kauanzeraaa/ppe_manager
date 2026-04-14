@@ -18,20 +18,20 @@ export default {
   <div class="body">
     <!-- Section "Home" - aqui é a parte do Miguel, coloquei essa section para, ao clicar em "Home", a tela scrollar pra cima -->
     <section id="home" class="nav_home">
-      <img
-        src="../assets/banner/Banner_Image.png"
-        class="bnr_img"
-        alt="Home Banner"
-      />
-      <div class="bnr_desc">
-        <div class="bnr_esq">
-          <div class="titulo_inf">
-            <p>Equipamento de Proteção Individual</p>
-          </div>
-          <h1 class="texto_esq_bnr">
-            Faça o Gerenciamento do Seu Estoque de EPIs
-          </h1>
-        </div>
+            <img
+            src="../assets/banner/Banner_Image.png"
+            class="bnr_img"
+            alt="Home Banner"
+            />
+            <div class="bnr_desc">
+                <div class="bnr_esq">
+                    <div class="titulo_inf">
+                    <p>Equipamento de Proteção Individual</p>
+                    </div>
+                <h1 class="texto_esq_bnr">
+                    Faça o Gerenciamento do Seu Estoque de EPIs
+                </h1>
+            </div>
         <div class="bnr_dir">
           <p class="texto_dir_bnr">
             Lorem Ipsum is simply dummy text of the printing and typesetting
@@ -42,14 +42,14 @@ export default {
             Acesse sua conta
           </router-link>
         </div>
-      </div>
+        </div>
     </section>
 
     <!-- Section "Our Services" -->
     <section id="about" class="nav_about">
-      <div class="about-grid-container">
+  <div class="about-grid-container">
 
-      <div class="col-text">
+    <div class="col-text">
       <span class="badge">Sobre</span>
       <h1 class="main-title">Rastreabilidade <br> Completa dos Produtos</h1>
       <p class="description">
@@ -193,16 +193,31 @@ section {
   padding: 20px;
 }
 
+.nav_home {
+    position: relative;
+    display: grid;
+    flex-direction:column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    width: 100%;
+    margin-top: 10%;
+}
+
 .bnr_img {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1;
-  width: 100%;
+    grid-area: 1/1;
+
+    position: inherit;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    margin-top: -15%;
+    width: 100%;
 }
 
 .bnr_desc {
+
   position: relative;
   z-index: 2;
   display: flex;
@@ -213,6 +228,21 @@ section {
   border-radius: 30px;
   bottom: 50%;
   margin: auto;
+=======
+    z-index: 2;
+    grid-area: 1/1;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+    height: 250px;
+    width: 80%;
+    background-color: #ffffff;
+    border-radius: 30px;
+    margin-bottom: 20%;
+    margin: 10%;
+
 }
 
 .bnr_esq {
@@ -484,6 +514,7 @@ section {
   margin-bottom: 18px;
 }
 
+
 @media (max-width: 768px) {
 
   /* trabalhando na responsividade */
@@ -528,37 +559,98 @@ section {
   .nav_contact {
     padding: 40px 5% 60px;
   }
-
-  .contact-body {
-    grid-template-columns: 1fr;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .form-card {
-    padding: 24px 20px;
-  }
-}
-
-.about-header {
-  text-align: center; /* Centraliza o cabeçalho igual ao "Contato" */
-  margin-bottom: 40px;
-}
-
-.about-body {
+=======
+.about-grid-container {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr; /* Divide em 3 colunas iguais */
-  gap: 20px;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 60px;
   align-items: center;
+  padding: 100px 50px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-/* Garante que no mobile elas fiquem uma abaixo da outra, 
-seguindo o padrão que você já tem no VS Code */
-@media (max-width: 768px) {
-  .about-body {
-    grid-template-columns: 1fr;
-  }
+.badge {
+  background-color: #f3e5c2;
+  color: #d4a017;
+  padding: 8px 15px;
+  border-radius: 8px;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.main-title {
+  font-size: 40px;
+  color: #333;
+  margin: 25px 0;
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.description {
+  color: #777;
+  font-size: 15px;
+  margin-bottom: 30px;
+}
+
+
+.btn-account {
+  background-color: #34495e;
+  color: white;
+  padding: 15px 35px;
+  border: none;
+  border-radius: 50px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.col-image img {
+  width: 100%;
+  border-radius: 25px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  display: block;
+}
+
+.acc-item {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  transition: 0.3s;
+}
+
+.acc-item.active {
+  background-color: #34495e !important;
+  color: white !important;
+}
+
+.acc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+.circle-icon {
+  background-color: #f39c12;
+  color: white;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 10px;
+}
+
+.acc-content {
+  margin-top: 15px;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.acc-item.active .icon-up {
+  color: white;
 }
 </style>

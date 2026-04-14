@@ -36,7 +36,7 @@
 }
 
 .msg-div{
-    width: auto;
+    width: 50%;
 }
 
 .footer-rights{
@@ -51,4 +51,14 @@
     color: white;
 }
 
+@media (max-width: 768px) {
+    .footer-info {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .msg-div {
+        width: 100%;
+    }
+}
 </style>

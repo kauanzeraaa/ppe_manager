@@ -218,17 +218,6 @@ section {
 
 .bnr_desc {
 
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: row;
-  height: 250px;
-  width: 80%;
-  background-color: #ffffff;
-  border-radius: 30px;
-  bottom: 50%;
-  margin: auto;
-=======
     z-index: 2;
     grid-area: 1/1;
     position: relative;
@@ -517,7 +506,6 @@ section {
 
 @media (max-width: 768px) {
 
-  /* trabalhando na responsividade */
   .bnr_desc {
   position: relative;
   z-index: 2;
@@ -559,7 +547,7 @@ section {
   .nav_contact {
     padding: 40px 5% 60px;
   }
-=======
+
 .about-grid-container {
   display: grid;
   grid-template-columns: 1.2fr 1fr 1fr;
@@ -652,5 +640,6 @@ section {
 
 .acc-item.active .icon-up {
   color: white;
+}
 }
 </style>

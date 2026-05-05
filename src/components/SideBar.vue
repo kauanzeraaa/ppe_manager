@@ -75,7 +75,7 @@ function isCurrentRoute(path) {
 /* Container principal da sidebar */
 .navigation {
   position: fixed;
-  inset: 40px 0 40px 20px;
+  inset: 20px 0 20px 20px;
   background: #2B4A69;
   width: 80px;
   display: flex;
@@ -94,10 +94,10 @@ function isCurrentRoute(path) {
 .nav-menu {
   display: flex;
   flex-direction: column;
-  gap: 50px;
+  gap: 10px;
   height: 100%;
   width: 100%;
-  margin-top: 8rem;
+  margin-top: 7rem;
 }
 
 .container-link-bottom {

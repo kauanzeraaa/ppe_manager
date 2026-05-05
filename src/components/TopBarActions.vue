@@ -58,7 +58,7 @@ function confirmLogout() {
     /* Estilos dos botões */
     .buttons {
         position: fixed;
-        top: 20px;
+        top: 0;
         right: 20px;
         display: flex;
         gap: 15px;

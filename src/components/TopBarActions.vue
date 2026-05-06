@@ -54,15 +54,18 @@ function confirmLogout() {
     </section>
 </template>
 
+
 <style scoped>
     /* Estilos dos botões */
     .buttons {
         position: fixed;
-        top: 0;
+        top: -3.6rem;
         right: 20px;
         display: flex;
         gap: 15px;
         z-index: 100;
+        display: flex;
+        flex-direction: row;
     }
 
     .button-notification, .button-configuration, .button-exit {

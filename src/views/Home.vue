@@ -475,7 +475,7 @@ section {
   padding: 28px;
   color: #fff;
 }
-
+ 
 .why-card h3 {
   font-family: var(--font-secondary);
   font-size: 1rem;

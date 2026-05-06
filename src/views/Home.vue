@@ -104,13 +104,14 @@ export default {
 
     <!-- ── Contact ─────────────────────────────── -->
     <section id="contact" class="nav_contact">
-      <div class="contact-header">
-        <span class="badge">Contato</span>
-        <h2>Entre em Contato</h2>
-        <p>Lorem Ipsum is simply dummy text of the printing and typesetting.</p>
-      </div>
-
       <div class="contact-body">
+        <div class="contact-left">
+          <div class="contact-header">
+            <span class="badge">Contato</span>
+            <h2>Entre em Contato</h2>
+            <p>Lorem Ipsum is simply dummy text of the printing and typesetting.</p>
+          </div>
+
         <div class="why-card">
           <h3>Por que entrar em contato?</h3>
 
@@ -130,19 +131,10 @@ export default {
             </div>
             <div class="why-text">
               <h4>Suporte</h4>
-              <p>Lorem Ipsum is simply dummy text of the prin</p>
+              <p>Lorem Ipsum is simply dummy text of the</p>
             </div>
           </div>
-
-          <div class="why-item">
-            <div class="why-icon">
-              <span class="material-icons">email</span>
-            </div>
-            <div class="why-text">
-              <h4>Entre em Contato</h4>
-              <p>Lorem Ipsum is simply dummy text of the prin</p>
-            </div>
-          </div>
+        </div>
         </div>
 
         <div class="form-card">
@@ -437,11 +429,16 @@ section {
 .nav_contact {
   background: #f0f2f5;
   padding: 80px 5%;
-  gap: 48px;
+}
+
+.contact-left {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .contact-header {
-  text-align: center;
+  text-align: left;
   width: 100%;
 }
 
@@ -451,6 +448,7 @@ section {
   color: #1a1a2e;
   font-weight: 400;
   margin: 8px 0;
+  line-height: 1;
 }
 
 .contact-header p {
@@ -459,7 +457,7 @@ section {
   color: #666;
   max-width: 360px;
   line-height: 1.6;
-  margin: 0 auto;
+  margin: 0;
 }
 
 .contact-body {
@@ -477,13 +475,14 @@ section {
   padding: 28px;
   color: #fff;
 }
-
+ 
 .why-card h3 {
   font-family: var(--font-secondary);
   font-size: 1rem;
   font-weight: 700;
   margin: 0 0 22px;
   text-align: center;
+  line-height: 1.1;
 }
 
 .why-item {
@@ -616,7 +615,7 @@ section {
 
 .btn-submit {
   display: block;
-  margin-left: auto;
+  margin-left: 0;
   margin-top: 8px;
   padding: 14px 36px;
   background: #2b4a69;
@@ -656,6 +655,10 @@ section {
 @media (max-width: 900px) {
   .contact-body {
     grid-template-columns: 1fr;
+  }
+
+  .contact-left {
+    gap: 16px;
   }
 
   .why-card {
@@ -747,7 +750,7 @@ section {
   }
 
   .form-card {
-    padding: 24px 20px;
+    padding: 4px 20px;
   }
 
   .acc-item {

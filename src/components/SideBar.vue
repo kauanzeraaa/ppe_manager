@@ -66,7 +66,7 @@ function isCurrentRoute(path) {
 .sidebar {
   position: fixed;
   inset: 20px 0 20px 20px;
-  width: 90px;
+  width: 75px;
   background: #2b4a69;
   border-radius: 28px;
   overflow: hidden;
@@ -83,7 +83,7 @@ function isCurrentRoute(path) {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 6rem 10px 1.5rem;
+  padding: 3rem 10px 1.5rem;
   margin: 0;
   list-style: none;
 }
@@ -99,7 +99,7 @@ function isCurrentRoute(path) {
   background: rgba(255, 255, 255, 0.12);
   margin: 10px 4px;
   flex-shrink: 0;
-  margin-top: 280px;
+  margin-top: 80px;
 }
 
 /* Item */

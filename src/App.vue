@@ -52,7 +52,7 @@ const showTopBarActions = computed(() => sidebarRoutes.includes(route.path))
 }
 
 .app-shell--with-sidebar .app-content {
-  padding: 40px 40px 40px 320px;
+  padding: 40px 40px 40px 140px;
 }
 
 @media (max-width: 768px) {

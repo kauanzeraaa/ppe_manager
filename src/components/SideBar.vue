@@ -94,7 +94,7 @@ function isCurrentRoute(path) {
 .nav-menu {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 2%;
   height: 100%;
   width: 100%;
   margin-top: 7rem;

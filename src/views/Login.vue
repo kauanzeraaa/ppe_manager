@@ -1,18 +1,73 @@
 <script setup>
-import { useRouter } from 'vue-router';
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useSupabase } from "../composables/useSupabase";
 
+const email = ref("");
+const password = ref("");
+const erro = ref(null);
+const loading = ref(false);
+
+const { supabase } = useSupabase();
 const router = useRouter();
 
 const goBack = () => {
-  router.push('/');
+  router.push("/");
 };
 
-const goToDashboard = () => {
-  router.push('/dashboard');
+const login = async () => {
+  // Reseta o erro e define o estado de carregamento
+  erro.value = null;
+  loading.value = true;
+
+  const emailNormalizado = email.value.trim().toLowerCase();
+
+  // Validação básica para garantir que email e senha foram preenchidos
+  if (!emailNormalizado || !password.value) {
+    erro.value = "Email e senha são obrigatórios";
+    loading.value = false;
+    return;
+  }
+
+  try {
+    // Tenta fazer login com email e senha usando o Supabase
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: emailNormalizado,
+      password: password.value,
+    });
+
+    if (error) {
+      console.error("Erro de login:", error);
+
+      // Tratamento de erros específicos
+      if (error.message.includes("Invalid login credentials")) {
+        erro.value =
+          "Email ou senha inválidos. Se o usuário foi criado agora, confirme se o cadastro no Auth foi concluído.";
+      } else if (error.message.includes("Email not confirmed")) {
+        erro.value =
+          "Email não foi confirmado. Verifique sua caixa de entrada ou desative a confirmação de email no Supabase para ambiente de teste.";
+      } else if (error.message.includes("Too many requests")) {
+        erro.value = "Muitas tentativas. Tente novamente depois";
+      } else {
+        erro.value = error.message || "Erro ao fazer login";
+      }
+      loading.value = false;
+      return;
+    }
+
+    // Se o login for bem-sucedido, redireciona para o dashboard
+    if (data?.session) {
+      router.push("/dashboard");
+    }
+  } catch (erroCatch) {
+    console.error("Erro inesperado:", erroCatch);
+    erro.value = "Erro inesperado. Tente novamente tarde";
+    loading.value = false;
+  }
 };
 
 const goToRegister = () => {
-  router.push('/register');
+  router.push("/register");
 };
 </script>
 
@@ -24,13 +79,28 @@ const goToRegister = () => {
         <h1 class="title">Faça Login</h1>
         <form @submit.prevent="">
           <label for="email">Email</label>
-          <input type="email" id="email" placeholder="Digite seu email" />
+          <input
+            type="email"
+            id="email"
+            placeholder="Digite seu email"
+            v-model="email"
+          />
           <label for="password">Senha</label>
-          <input type="password" id="password" placeholder="Digite sua senha" />
+          <input
+            type="password"
+            id="password"
+            placeholder="Digite sua senha"
+            v-model="password"
+          />
           <div class="container-buttons">
-            <button type="button" class="submit" @click="goToDashboard">Entrar</button>
-            <button type="button" class="register" @click="goToRegister">Cadastrar</button>
+            <button class="submit" @click="login" :disabled="loading">
+              {{ loading ? "Entrando..." : "Entrar" }}
+            </button>
+            <button type="button" class="register" @click="goToRegister">
+              Cadastrar
+            </button>
           </div>
+          <p v-if="erro" class="error-message">{{ erro }}</p>
         </form>
       </div>
       <img src="../assets/homi.png" alt="" />
@@ -135,11 +205,11 @@ const goToRegister = () => {
 }
 
 #email {
-  background-image: url('../assets/icons_login/email.png');
+  background-image: url("../assets/icons_login/email.png");
 }
 
 #password {
-  background-image: url('../assets/icons_login/password.png');
+  background-image: url("../assets/icons_login/password.png");
 }
 
 .content form input::placeholder {
@@ -179,7 +249,7 @@ const goToRegister = () => {
   cursor: pointer;
 }
 
-.submit:hover { 
+.submit:hover {
   box-shadow: 0px 4px 15px rgba(10, 9, 90, 0.9);
 }
 
@@ -198,5 +268,4 @@ const goToRegister = () => {
   color: #ffffff;
   box-shadow: 0px 4px 15px rgba(10, 9, 90, 0.9);
 }
-
 </style>

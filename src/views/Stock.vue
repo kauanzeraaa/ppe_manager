@@ -1,41 +1,100 @@
 <script>
+import { createClient } from "@supabase/supabase-js";
+
 export default {
   data() {
     return {
-      equipamentos: [
-        { id: '01', nome: "Capacete de Segurança", descricao: "Proteção para impacto e queda de objetos.", classificacao: "Reutilizável", tamanho: "M", quantidade: 50, validade: "2027-05-15" },
-        { id: '02', nome: "Óculos de Proteção", descricao: "Evita danos aos olhos durante o uso diário.", classificacao: "Reutilizável", tamanho: "Único", quantidade: 100, validade: "2026-12-31" },
-        { id: '03', nome: "Luvas de Segurança", descricao: "Indicado para proteção das mãos em serviço.", classificacao: "Descartável", tamanho: "G", quantidade: 200, validade: "2026-08-20" },
-        { id: '04', nome: "Colete Refletor", descricao: "Aumenta a visibilidade em ambientes operacionais.", classificacao: "Reutilizável", tamanho: "M", quantidade: 30, validade: "2028-03-10" },
-        { id: '05', nome: "Máscara Respiratória", descricao: "Reduz a exposição a partículas e poeira.", classificacao: "Descartável", tamanho: "Único", quantidade: 10, validade: "2026-04-30" },
-        { id: '06', nome: "Botina de Segurança", descricao: "Proteção reforçada para os pés no trabalho.", classificacao: "Reutilizável", tamanho: "42", quantidade: 40, validade: "2027-11-15" },
-        { id: '07', nome: "Protetor Auricular", descricao: "Auxilia na redução da exposição a ruídos.", classificacao: "Descartável", tamanho: "Único", quantidade: 120, validade: "2026-05-25" },
-        { id: '08', nome: "Avental Antichama", descricao: "Proteção adicional contra calor e fagulhas.", classificacao: "Reutilizável", tamanho: "G", quantidade: 25, validade: "2027-07-18" },
-        { id: '09', nome: "Cinto de Segurança", descricao: "Indicado para trabalho em altura com retenção.", classificacao: "Reutilizável", tamanho: "P", quantidade: 9, validade: "2028-01-30" },
-        { id: '10', nome: "Arnês de Proteção", descricao: "Oferece suporte e segurança em atividades elevadas.", classificacao: "Reutilizável", tamanho: "M", quantidade: 20, validade: "2027-09-12" }
-      ]
+      equipamentos: [],
+      loading: true,
+      error: null,
+      searchTerm: '',
+      selectedClassificacao: null
     }
-  }
-  ,
+  },
+  async mounted() {
+    await this.loadEquipamentos();
+  },
+  computed: {
+    equipamentosFiltrados() {
+      return this.equipamentos.filter(equipamento => {
+        const matchSearch = equipamento.nome.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+                           equipamento.descricao.toLowerCase().includes(this.searchTerm.toLowerCase());
+        const matchClassificacao = !this.selectedClassificacao || 
+                                  equipamento.classificacao === this.selectedClassificacao;
+        return matchSearch && matchClassificacao;
+      });
+    }
+  },
   methods: {
+    async loadEquipamentos() {
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const { data, error } = await supabase
+          .from('view_estoque_epi')
+          .select('*');
+
+        if (error) {
+          console.error('Erro ao buscar equipamentos:', error);
+          this.error = 'Erro ao carregar dados';
+          return;
+        }
+
+        // Mapear os dados com ID sequencial
+        this.equipamentos = data.map((item, index) => ({
+          id: String(index + 1).padStart(2, '0'),
+          nome: item.nome,
+          descricao: item.descricao,
+          classificacao: item.classificacao,
+          tamanho: item.tamanho,
+          quantidade: item.quantidade_atual,
+          estoque_minimo: item.estoque_minimo,
+          validade: item.validade
+        }));
+
+      } catch (err) {
+        console.error('Erro inesperado ao carregar equipamentos:', err);
+        this.error = 'Erro ao carregar dados';
+      } finally {
+        this.loading = false;
+      }
+    },
     openActions(equipamento) {
       console.log('Abrir ações para', equipamento.id)
     },
-    qtyBadgeClass(qty) {
-      if (qty <= 10) return 'red';
-      if (qty <= 50) return 'orange';
+    resetFilters() {
+      this.searchTerm = '';
+      this.selectedClassificacao = null;
+    },
+    qtyBadgeClass(qty, estoqueMinimo) {
+      if (qty <= estoqueMinimo) return 'red';
+      if (qty <= estoqueMinimo + 10) return 'orange';
       return 'green';
     },
     dateBadgeClass(dateStr) {
       if (!dateStr) return 'green';
+      
+      // Parsear a data considerando timezone UTC
       const parts = dateStr.split('-');
-      const d = new Date(parts[0], Number(parts[1]) - 1, parts[2]);
+      if (parts.length !== 3) return 'green';
+      
+      const [year, month, day] = parts;
+      const valityDate = new Date(year, Number(month) - 1, Number(day));
       const today = new Date();
-      // normalize to midnight
-      const diff = Math.ceil((d - new Date(today.getFullYear(), today.getMonth(), today.getDate())) / (1000 * 60 * 60 * 24));
-      if (diff < 0) return 'red';
-      if (diff <= 30) return 'orange';
-      return 'green';
+      
+      // Normalizar ambas as datas para midnight em UTC para comparação consistente
+      valityDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      
+      // Calcular diferença em dias
+      const diffMs = valityDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      
+      if (diffDays < 0) return 'red';      // Vencido
+      if (diffDays <= 30) return 'orange'; // Faltando até 30 dias
+      return 'green';                      // Acima de 30 dias
     },
     formatDate(dateStr) {
       if (!dateStr) return '';
@@ -51,6 +110,39 @@ export default {
   <div class="page">
     <span class="badge">Estoque</span>
     <h1 class="title">Equipamentos Cadastrados</h1>
+    
+    <div class="filters-container">
+      <div class="search-box">
+        <input 
+          type="text" 
+          v-model="searchTerm" 
+          placeholder="Buscar por nome ou descrição..." 
+          class="search-input"
+        />
+      </div>
+      
+      <div class="filter-buttons">
+        <button 
+          :class="['filter-btn', { active: selectedClassificacao === null }]"
+          @click="selectedClassificacao = null"
+        >
+          Todos
+        </button>
+        <button 
+          :class="['filter-btn', { active: selectedClassificacao === 'Reutilizável' }]"
+          @click="selectedClassificacao = 'Reutilizável'"
+        >
+          Reutilizáveis
+        </button>
+        <button 
+          :class="['filter-btn', { active: selectedClassificacao === 'Descartável' }]"
+          @click="selectedClassificacao = 'Descartável'"
+        >
+          Descartáveis
+        </button>
+      </div>
+    </div>
+    
     <table class="table">
         <thead class="header-table">
           <tr>
@@ -64,7 +156,7 @@ export default {
           </tr>
         </thead>
         <tbody class="content-table">
-            <tr v-for="equipamento in equipamentos" :key="equipamento.id">
+            <tr v-for="equipamento in equipamentosFiltrados" :key="equipamento.id">
             <td>{{ equipamento.id }}</td>
             <td class="name-cell">
               <div class="product-name">{{ equipamento.nome }}</div>
@@ -73,7 +165,7 @@ export default {
             <td>{{ equipamento.classificacao }}</td>
             <td>{{ equipamento.tamanho }}</td>
             <td>
-              <span :class="['badge-qty', qtyBadgeClass(equipamento.quantidade)]">{{ equipamento.quantidade }}</span>
+              <span :class="['badge-qty', qtyBadgeClass(equipamento.quantidade, equipamento.estoque_minimo)]">{{ equipamento.quantidade }}</span>
             </td>
             <td>
               <span :class="['badge-date', dateBadgeClass(equipamento.validade)]">{{ formatDate(equipamento.validade) }}</span>
@@ -136,6 +228,72 @@ export default {
   width: 101.2%;
   height: 100%;
   margin-top: -1rem;
+}
+
+.filters-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-input {
+  width: 95%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: var(--font-secondary);
+  transition: all 0.3s ease;
+  background-color: #fff;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #f39c12;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-btn {
+  padding: 10px 18px;
+  border: 2px solid #e0e0e0;
+  background-color: #fff;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  font-family: var(--font-secondary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  border-color: #f39c12;
+  background-color: #fff;
+  color: #f39c12;
+}
+
+.filter-btn.active {
+  background-color: #f39c12;
+  border-color: #f39c12;
+  color: white;
+  font-weight: 600;
 }
 
 .badge {

@@ -15,8 +15,8 @@ const sidebarRoutes = [
   '/dashboard', 
   '/historic', 
   '/profile', 
-  '/record',       
-  '/request', 
+  '/movement',       
+  '/reports', 
   '/settings', 
   '/stock'
 ];

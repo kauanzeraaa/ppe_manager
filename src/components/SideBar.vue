@@ -8,7 +8,7 @@ import requestIcon from '../assets/icons_sidebar/request.png'
 import recordIcon from '../assets/icons_sidebar/record.png'
 import historicIcon from '../assets/icons_sidebar/historic.png'
 import settingsIcon from '../assets/icons_sidebar/settings.png'
-import profileIcon from '../assets/icons_sidebar/profile.png'
+import profileIcon from '../assets/icons_sidebar/profile.png'   
 
 const route = useRoute()
 const isActive = ref(false)
@@ -16,8 +16,8 @@ const isActive = ref(false)
 const topItems = [
   { label: 'Home', to: '/dashboard', icon: homeIcon, alt: 'Home', color: '#F39C12' },
   { label: 'Estoque', to: '/stock', icon: stockIcon, alt: 'Estoque', color: '#F39C12' },
-  { label: 'Solicitações', to: '/request', icon: requestIcon, alt: 'Solicitações', color: '#F39C12' },
-  { label: 'Registros', to: '/record', icon: recordIcon, alt: 'Registros', color: '#F39C12' },
+  { label: 'Relatórios', to: '/reports', icon: requestIcon, alt: 'Relatórios', color: '#F39C12' },
+  { label: 'Movimentação', to: '/movement', icon: recordIcon, alt: 'Movimentações', color: '#F39C12' },
   { label: 'Histórico', to: '/historic', icon: historicIcon, alt: 'Histórico', color: '#F39C12' },
 ]
 

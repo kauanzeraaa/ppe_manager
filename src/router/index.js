@@ -7,8 +7,8 @@ import Register from '../views/Register.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Historic from '../views/Historic.vue'
 import Profile from '../views/Profile.vue'
-import Record from '../views/Record.vue'
-import Request from '../views/Request.vue'
+import Movement from '../views/Movement.vue'
+import Reports from '../views/Reports.vue'
 import Settings from '../views/Settings.vue'
 import Stock from '../views/Stock.vue'
 
@@ -20,8 +20,8 @@ const routes = [
     { path : '/dashboard', component: Dashboard },
     { path : '/historic', component: Historic },
     { path : '/profile', component: Profile },
-    { path : '/record', component: Record },
-    { path : '/request', component: Request },
+    { path : '/movement', component: Movement },
+    { path : '/reports', component: Reports },
     { path : '/settings', component: Settings },
     { path : '/stock', component: Stock }
 

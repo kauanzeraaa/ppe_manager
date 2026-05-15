@@ -1,5 +1,8 @@
 <script>
 import { createClient } from "@supabase/supabase-js";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default {
   data() {
@@ -8,10 +11,14 @@ export default {
       loading: true,
       error: null,
       searchTerm: '',
-      selectedClassificacao: null
+      selectedClassificacao: null,
+      userRole: null, // guarda 'Administrador' ou 'Operador'
+      showEditModal: false, // controla se o modal aparece
+      equipamentoEmEdicao: null, // guarda os dados do epi que foi clicado
     }
   },
   async mounted() {
+    await this.fetchUserRole() // descobre quem é o usuario
     await this.loadEquipamentos();
   },
   computed: {
@@ -19,18 +26,38 @@ export default {
       return this.equipamentos.filter(equipamento => {
         const matchSearch = equipamento.nome.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
                            equipamento.descricao.toLowerCase().includes(this.searchTerm.toLowerCase());
-        const matchClassificacao = !this.selectedClassificacao || 
+        const matchClassificacao = !this.selectedClassificacao ||
                                   equipamento.classificacao === this.selectedClassificacao;
         return matchSearch && matchClassificacao;
       });
     }
   },
   methods: {
+    // função para buscar os usuários e retornar se ele é operador ou administrador
+    async fetchUserRole() {
+      try{
+        const { data: {user}} = await supabase.auth.getUser()
+        if(user){
+          const {data, error} = await supabase
+            .from('usuario')
+            .select('funcao')
+            .eq('id', user.id)
+            .single()
+
+          if(data) {
+            this.userRole = data.funcao
+          }
+        }
+      }catch (err){
+        console.log("Erro ao buscar a função do usuário:", err)
+      }
+    },
+
+    // função para carregar os equipamentos cadastrados no banco
     async loadEquipamentos() {
+      this.loading = true; // Garante o loading ao recarregar
+      this.error = null;
       try {
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-        const supabase = createClient(supabaseUrl, supabaseKey);
 
         const { data, error } = await supabase
           .from('view_estoque_epi')
@@ -44,7 +71,8 @@ export default {
 
         // Mapear os dados com ID sequencial
         this.equipamentos = data.map((item, index) => ({
-          id: String(index + 1).padStart(2, '0'),
+          id_real: item.epi_id || item.id, // UUID do banco
+          id_visual: String(index + 1).padStart(2, '0'), // ID visual
           nome: item.nome,
           descricao: item.descricao,
           classificacao: item.classificacao,
@@ -61,18 +89,38 @@ export default {
         this.loading = false;
       }
     },
+
     openActions(equipamento) {
-      console.log('Abrir ações para', equipamento.id)
+      this.equipamentoEmEdicao = { ...equipamento}
+      this.showEditModal = true
     },
+
+    // função para fechar o modal
+    closeModal(){
+      this.showEditModal = false
+      this.equipamentoEmEdicao = null
+    },
+
+    // funcção para salvar as edições do EPI
+    async salvarEdicao() {
+      console.log('Salvando dados:', this.equipamentoEmEdicao)
+
+      this.closeModal()
+
+      await this.loadEquipamentos() // atualiza a tabela para aparecer os dados atualizados
+    },
+
     resetFilters() {
       this.searchTerm = '';
       this.selectedClassificacao = null;
     },
+
     qtyBadgeClass(qty, estoqueMinimo) {
       if (qty <= estoqueMinimo) return 'red';
       if (qty <= estoqueMinimo + 10) return 'orange';
       return 'green';
     },
+
     dateBadgeClass(dateStr) {
       if (!dateStr) return 'green';
       
@@ -96,6 +144,7 @@ export default {
       if (diffDays <= 30) return 'orange'; // Faltando até 30 dias
       return 'green';                      // Acima de 30 dias
     },
+
     formatDate(dateStr) {
       if (!dateStr) return '';
       const parts = dateStr.split('-');
@@ -156,23 +205,45 @@ export default {
           </tr>
         </thead>
         <tbody class="content-table">
-            <tr v-for="equipamento in equipamentosFiltrados" :key="equipamento.id">
-            <td>{{ equipamento.id }}</td>
-            <td class="name-cell">
-              <div class="product-name">{{ equipamento.nome }}</div>
-              <div class="product-description">{{ equipamento.descricao }}</div>
-            </td>
-            <td>{{ equipamento.classificacao }}</td>
-            <td>{{ equipamento.tamanho }}</td>
-            <td>
-              <span :class="['badge-qty', qtyBadgeClass(equipamento.quantidade, equipamento.estoque_minimo)]">{{ equipamento.quantidade }}</span>
-            </td>
-            <td>
-              <span :class="['badge-date', dateBadgeClass(equipamento.validade)]">{{ formatDate(equipamento.validade) }}</span>
-            </td>
-            <td class="actions-cell">
-              <button class="actions-btn" @click="openActions(equipamento)" aria-label="Ações">⋮</button>
-            </td>
+            <tr v-if="loading">
+              <td colspan="7" style="text-align: center; padding: 20px; color: #777;">
+                Carregando estoque...
+              </td>
+            </tr>
+
+            <tr v-else-if="error">
+              <td colspan="7" style="text-align: center; padding: 20px; color: #c0392b;">
+                {{ error }}
+              </td>
+            </tr>
+
+            <tr v-else-if="equipamentosFiltrados.length === 0">
+              <td colspan="7" style="text-align: center; padding: 20px; color: #777;">
+                Nenhum equipamento encontrado com os filtros atuais.
+              </td>
+            </tr>
+
+            <tr v-else v-for="equipamento in equipamentosFiltrados" :key="equipamento.id_real">
+              <td>{{ equipamento.id_visual }}</td>
+              <td class="name-cell">
+                <div class="product-name">{{ equipamento.nome }}</div>
+                <div class="product-description">{{ equipamento.descricao }}</div>
+              </td>
+              <td>{{ equipamento.classificacao }}</td>
+              <td>{{ equipamento.tamanho }}</td>
+              <td>
+                <span :class="['badge-qty', qtyBadgeClass(equipamento.quantidade, equipamento.estoque_minimo)]">
+                  {{ equipamento.quantidade }}
+                </span>
+              </td>
+              <td>
+                <span :class="['badge-date', dateBadgeClass(equipamento.validade)]">
+                  {{ formatDate(equipamento.validade) }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                <button class="actions-btn" @click="openActions(equipamento)" aria-label="Ações">⋮</button>
+              </td>
             </tr>
         </tbody>
     </table>

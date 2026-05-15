@@ -15,6 +15,7 @@ export default {
       userRole: null, // guarda 'Administrador' ou 'Operador'
       showEditModal: false, // controla se o modal aparece
       equipamentoEmEdicao: null, // guarda os dados do epi que foi clicado
+      activeDropdown: null
     }
   },
   async mounted() {
@@ -42,7 +43,7 @@ export default {
             .from('usuario')
             .select('funcao')
             .eq('id', user.id)
-            .single()
+            .maybeSingle()
 
           if(data) {
             this.userRole = data.funcao
@@ -79,7 +80,8 @@ export default {
           tamanho: item.tamanho,
           quantidade: item.quantidade_atual,
           estoque_minimo: item.estoque_minimo,
-          validade: item.validade
+          validade: item.validade,
+          certificado_autenticacao: item.certificado_autenticacao
         }));
 
       } catch (err) {
@@ -103,11 +105,41 @@ export default {
 
     // funcção para salvar as edições do EPI (KAUAN CRIAR DEPOIS)
     async salvarEdicao() {
-      console.log('Salvando dados:', this.equipamentoEmEdicao)
+      try {
+        // Salva os dados na tabela EPI
+        const { error: errorEpi } = await supabase
+          .from('epi')
+          .update({
+            nome: this.equipamentoEmEdicao.nome,
+            descricao: this.equipamentoEmEdicao.descricao,
+            certificado_autenticacao: this.equipamentoEmEdicao.certificado_autenticacao,
+            classificacao: this.equipamentoEmEdicao.classificacao,
+            tamanho: this.equipamentoEmEdicao.tamanho,
+            validade: this.equipamentoEmEdicao.validade
+          })
+          .eq('id', this.equipamentoEmEdicao.id_real);
 
-      this.closeModal()
+        if (errorEpi) throw errorEpi;
 
-      await this.loadEquipamentos() // atualiza a tabela para aparecer os dados atualizados
+        // Salva os dados na tabela ESTOQUE
+        const { error: errorEstoque } = await supabase
+          .from('estoque')
+          .update({
+            quantidade_atual: this.equipamentoEmEdicao.quantidade,
+            estoque_minimo: this.equipamentoEmEdicao.estoque_minimo
+          })
+          .eq('epi_id', this.equipamentoEmEdicao.id_real);
+
+        if (errorEstoque) throw errorEstoque;
+
+        this.closeModal();
+        await this.loadEquipamentos(); 
+        alert('Dados salvos com sucesso!');
+
+      } catch (error) {
+        console.error('Erro ao salvar:', error);
+        alert('Erro ao salvar as alterações.');
+      }
     },
 
     resetFilters() {
@@ -150,7 +182,45 @@ export default {
       const parts = dateStr.split('-');
       if (parts.length !== 3) return dateStr;
       return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
+    },
+
+    toggleDropdown(id) {
+      // Se clicar no que já está aberto, ele fecha. Se clicar em outro, ele abre o novo.
+      this.activeDropdown = this.activeDropdown === id ? null : id;
+    },
+
+    abrirModalEdicao(equipamento) {
+      this.activeDropdown = null; // Fecha o menu
+      this.equipamentoEmEdicao = { ...equipamento };
+      this.showEditModal = true;
+    },
+
+    async excluirEPI(equipamento) {
+      this.activeDropdown = null; // Fecha o menu
+      
+      const confirmacao = window.confirm(`Deseja realmente excluir o EPI "${equipamento.nome}"?`);
+      if (!confirmacao) return;
+
+      try {
+        const { error } = await supabase
+          .from('epi')
+          .update({ ativo: false })
+          .eq('id', equipamento.id_real);
+
+        if (error) throw error;
+
+        await this.loadEquipamentos();
+        alert('Equipamento excluído com sucesso!');
+      } catch (error) {
+        console.error(error);
+        alert('Erro ao excluir o equipamento.');
+      }
+    },
+
+    solicitarReposicao(equipamento) {
+      this.activeDropdown = null; // Fecha o menu
+      alert(`Em breve: Solicitação de reposição para o EPI ${equipamento.nome} enviada ao Administrador!`);
+    },
   }
 }
 </script>
@@ -190,6 +260,12 @@ export default {
           Descartáveis
         </button>
       </div>
+    </div>
+
+    <div class="admin-actions-bar" v-if="userRole === 'Administrador'">
+      <button class="btn-primary" @click="console.log('Abrir modal de novo EPI')">
+        + Novo Equipamento
+      </button>
     </div>
     
     <table class="table">
@@ -242,11 +318,89 @@ export default {
                 </span>
               </td>
               <td class="actions-cell">
-                <button class="actions-btn" @click="openActions(equipamento)" aria-label="Ações">⋮</button>
+                <button class="actions-btn" @click="toggleDropdown(equipamento.id_real)" aria-label="Ações">⋮</button>
+                
+                <div class="dropdown-menu" v-if="activeDropdown === equipamento.id_real">
+                  
+                  <button class="dropdown-item" @click="abrirModalEdicao(equipamento)">
+                    Editar EPI
+                  </button>
+                  
+                  <button class="dropdown-item danger" v-if="userRole === 'Administrador'" @click="excluirEPI(equipamento)">
+                    Excluir
+                  </button>
+
+                  <button class="dropdown-item" v-if="userRole === 'Operador'" @click="solicitarReposicao(equipamento)">
+                    Solicitar Reposição
+                  </button>
+
+                </div>
               </td>
             </tr>
         </tbody>
     </table>
+
+    <div class="modal-overlay" v-if="showEditModal" @click.self="closeModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Editar Equipamento</h2>
+          <button class="close-btn" @click="closeModal">×</button>
+        </div>
+        
+        <div class="modal-body" v-if="equipamentoEmEdicao">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Nome do Equipamento</label>
+              <input type="text" v-model="equipamentoEmEdicao.nome" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label>C.A (Certificado)</label>
+              <input type="text" v-model="equipamentoEmEdicao.certificado_autenticacao" class="form-input" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Descrição Detalhada</label>
+            <textarea v-model="equipamentoEmEdicao.descricao" class="form-input" rows="2"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label>Classificação</label>
+              <select v-model="equipamentoEmEdicao.classificacao" class="form-input">
+                <option value="Reutilizável">Reutilizável</option>
+                <option value="Descartável">Descartável</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Tamanho</label>
+              <input type="text" v-model="equipamentoEmEdicao.tamanho" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label>Validade</label>
+              <input type="date" v-model="equipamentoEmEdicao.validade" class="form-input" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Qtd. Atual no Estoque</label>
+              <input type="number" v-model="equipamentoEmEdicao.quantidade" class="form-input" min="0" />
+            </div>
+            <div class="form-group">
+              <label>Estoque Mínimo (Alerta)</label>
+              <input type="number" v-model="equipamentoEmEdicao.estoque_minimo" class="form-input" min="0" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" @click="closeModal">Cancelar</button>
+          <button class="btn-primary" @click="salvarEdicao">Salvar Alterações</button>
+        </div>
+  
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -457,6 +611,204 @@ export default {
   color: #1b1b1b;
   min-width: 34px;
   text-align: center;
+}
+
+/* Botão Primário do Admin */
+.admin-actions-bar {
+  display: flex;
+  justify-content: flex-end; /* Joga o botão para a direita */
+  margin-bottom: 20px;
+}
+
+.btn-primary {
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #d68910;
+}
+
+.btn-secondary {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.form-group label {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.modal-footer {
+  padding: 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.flex-1 { 
+  flex: 1; 
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+}
+
+textarea.form-input {
+  resize: vertical;
+}
+
+.actions-cell {
+  position: relative; /* O segredo para o dropdown não fugir */
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 40px; /* Joga o menu para a esquerda dos 3 pontinhos */
+  top: 10px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  min-width: 150px;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 13px;
+  font-family: inherit;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover {
+  background: #f9f9f9;
+  color: #f39c12;
+}
+
+.dropdown-item.danger:hover {
+  background: #ffecec;
+  color: #c0392b;
 }
 
 .badge-qty.green { background: #e6f9ea; color: #2d8a40; }

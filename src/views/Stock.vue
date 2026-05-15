@@ -101,7 +101,7 @@ export default {
       this.equipamentoEmEdicao = null
     },
 
-    // funcção para salvar as edições do EPI
+    // funcção para salvar as edições do EPI (KAUAN CRIAR DEPOIS)
     async salvarEdicao() {
       console.log('Salvando dados:', this.equipamentoEmEdicao)
 

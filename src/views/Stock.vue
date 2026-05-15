@@ -191,6 +191,12 @@ export default {
         </button>
       </div>
     </div>
+
+    <div class="admin-actions-bar" v-if="userRole === 'Administrador'">
+      <button class="btn-primary" @click="console.log('Abrir modal de novo EPI')">
+        + Novo Equipamento
+      </button>
+    </div>
     
     <table class="table">
         <thead class="header-table">
@@ -247,6 +253,28 @@ export default {
             </tr>
         </tbody>
     </table>
+
+    <div class="modal-overlay" v-if="showEditModal" @click.self="closeModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Editar Equipamento</h2>
+          <button class="close-btn" @click="closeModal">×</button>
+        </div>
+        
+        <div class="modal-body" v-if="equipamentoEmEdicao">
+          <div class="form-group">
+            <label>Nome do Equipamento</label>
+            <input type="text" v-model="equipamentoEmEdicao.nome" class="form-input" />
+          </div>
+          </div>
+        
+        <div class="modal-footer">
+          <button class="btn-secondary" @click="closeModal">Cancelar</button>
+          <button class="btn-primary" @click="salvarEdicao">Salvar Alterações</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -457,6 +485,118 @@ export default {
   color: #1b1b1b;
   min-width: 34px;
   text-align: center;
+}
+
+/* Botão Primário do Admin */
+.admin-actions-bar {
+  display: flex;
+  justify-content: flex-end; /* Joga o botão para a direita */
+  margin-bottom: 20px;
+}
+
+.btn-primary {
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #d68910;
+}
+
+.btn-secondary {
+  background-color: #e0e0e0;
+  color: #333;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #999;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.modal-footer {
+  padding: 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .badge-qty.green { background: #e6f9ea; color: #2d8a40; }

@@ -42,10 +42,10 @@ const login = async () => {
       // Tratamento de erros específicos
       if (error.message.includes("Invalid login credentials")) {
         erro.value =
-          "Email ou senha inválidos. Se o usuário foi criado agora, confirme se o cadastro no Auth foi concluído.";
+          "Email ou senha inválidos.";
       } else if (error.message.includes("Email not confirmed")) {
         erro.value =
-          "Email não foi confirmado. Verifique sua caixa de entrada ou desative a confirmação de email no Supabase para ambiente de teste.";
+          "Email não foi confirmado. Verifique sua caixa de entrada ou desative a confirmação de email no Supabase.";
       } else if (error.message.includes("Too many requests")) {
         erro.value = "Muitas tentativas. Tente novamente depois";
       } else {
@@ -61,7 +61,7 @@ const login = async () => {
     }
   } catch (erroCatch) {
     console.error("Erro inesperado:", erroCatch);
-    erro.value = "Erro inesperado. Tente novamente tarde";
+    erro.value = "Erro inesperado. Tente novamente mais tarde";
     loading.value = false;
   }
 };

@@ -282,7 +282,7 @@ export default {
     </div>
 
     <div class="admin-actions-bar" v-if="userRole === 'Administrador'">
-      <button class="btn-primary" @click="console.log('Abrir modal de novo EPI')">
+      <button class="btn-primary" @click="abrirModalNovo">
         Registrar novo equipamento
       </button>
     </div>
@@ -627,7 +627,7 @@ export default {
   outline: 2px solid rgba(243,156,18,0.25);
 }
 
-.badge-qty, .badge-date {
+.badge-qty, .badge-date { 
   display: inline-block;
   padding: 6px 10px;
   border-radius: 12px;

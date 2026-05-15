@@ -42,7 +42,7 @@ export default {
             .from('usuario')
             .select('funcao')
             .eq('id', user.id)
-            .single()
+            .maybeSingle()
 
           if(data) {
             this.userRole = data.funcao

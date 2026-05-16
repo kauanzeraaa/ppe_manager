@@ -7,8 +7,7 @@ import {
   BarElement,
   Title,
   Tooltip,
-  Legend,
-  ChartOptions
+  Legend
 } from 'chart.js'
 import { Bar } from 'vue-chartjs'
 

@@ -66,15 +66,6 @@ const totalEPIs = computed(() => distributionData.reduce((a, b) => a + b, 0))
 const conformanceRate = computed(() => '92%')
 const criticalItems = computed(() => stockCritical.filter((v, i) => stockAvailable[i] <= v).length)
 const monthlyConsumption = computed(() => movementConsumption[movementConsumption.length - 1])
-
-// Filtros
-const selectedPeriod = ref('6months')
-const periods = [
-  { value: '1month', label: 'Último mês' },
-  { value: '3months', label: 'Últimos 3 meses' },
-  { value: '6months', label: 'Últimos 6 meses' },
-  { value: '1year', label: 'Último ano' }
-]
 </script>
 
 <template>
@@ -83,14 +74,6 @@ const periods = [
       <div>
         <span class="badge">Relatórios</span>
         <h1 class="title">Relatórios e Conformidade de EPIs</h1>
-      </div>
-      
-      <div class="filters">
-        <select v-model="selectedPeriod" class="period-select">
-          <option v-for="period in periods" :key="period.value" :value="period.value">
-            {{ period.label }}
-          </option>
-        </select>
       </div>
     </div>
 
@@ -244,33 +227,6 @@ const periods = [
   color: #333;
   margin: 0;
   font-family: var(--font-primary);
-}
-
-.filters {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.period-select {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-family: var(--font-primary);
-  font-size: 0.95rem;
-  background: white;
-  cursor: pointer;
-  transition: border-color 0.3s ease;
-}
-
-.period-select:hover {
-  border-color: #f39c12;
-}
-
-.period-select:focus {
-  outline: none;
-  border-color: #f39c12;
-  box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.1);
 }
 
 /* Grid de Métricas */

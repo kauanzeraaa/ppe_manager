@@ -4,14 +4,14 @@
 
 <template>
     <div class="page">
-        <span class="badge">Dashboard</span>
-        <h1 class="title">Visão Geral do Sistema</h1>
+        <span class="badge">Relatórios</span>
+        <h1 class="title">Relatórios e Conformidade de EPIs</h1>
     </div>
 </template>
 
 <style scoped>
 .page {
-  width: 101.2%;    
+  width: 101.2%;
   height: 100%;
   margin-top: -1rem;
 }

@@ -5,7 +5,8 @@
 /* Variáveis de cor e fonte */
 :root {
     --color-orange: #F39C12;
-    --color-blue: #2B4A69;
+    --color-blue: #0158B5;
+    --color-blue-dark: #2B4A69;
     --font-primary: "Paytone One", sans-serif;
     --font-secondary: "Poppins", sans-serif;
 }

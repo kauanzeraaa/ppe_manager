@@ -113,39 +113,81 @@ export default {
     // funcção para salvar as edições do EPI (KAUAN CRIAR DEPOIS)
     async salvarEdicao() {
       try {
-        // Salva os dados na tabela EPI
-        const { error: errorEpi } = await supabase
-          .from('epi')
-          .update({
-            nome: this.equipamentoEmEdicao.nome,
-            descricao: this.equipamentoEmEdicao.descricao,
-            certificado_autenticacao: this.equipamentoEmEdicao.certificado_autenticacao,
-            classificacao: this.equipamentoEmEdicao.classificacao,
-            tamanho: this.equipamentoEmEdicao.tamanho,
-            validade: this.equipamentoEmEdicao.validade
-          })
-          .eq('id', this.equipamentoEmEdicao.id_real)
+        // Validação super rápida para não salvar EPI sem nome
+        if (!this.equipamentoEmEdicao.nome) {
+          this.showToast('O nome do equipamento é obrigatório!', 'error');
+          return;
+        }
 
-        if (errorEpi) throw errorEpi
+        // --- lógica de update (editar epi) ---
+        if (this.equipamentoEmEdicao.id_real) {
+          const { error: errorEpi } = await supabase
+            .from('epi')
+            .update({
+              nome: this.equipamentoEmEdicao.nome,
+              descricao: this.equipamentoEmEdicao.descricao,
+              certificado_autenticacao: this.equipamentoEmEdicao.certificado_autenticacao,
+              classificacao: this.equipamentoEmEdicao.classificacao,
+              tamanho: this.equipamentoEmEdicao.tamanho,
+              validade: this.equipamentoEmEdicao.validade || null
+            })
+            .eq('id', this.equipamentoEmEdicao.id_real);
 
-        // Salva os dados na tabela ESTOQUE
-        const { error: errorEstoque } = await supabase
-          .from('estoque')
-          .update({
-            quantidade_atual: this.equipamentoEmEdicao.quantidade,
-            estoque_minimo: this.equipamentoEmEdicao.estoque_minimo
-          })
-          .eq('id_equipamento', this.equipamentoEmEdicao.id_real)
+          if (errorEpi) throw errorEpi;
 
-        if (errorEstoque) throw errorEstoque
+          const { error: errorEstoque } = await supabase
+            .from('estoque')
+            .update({
+              quantidade_atual: this.equipamentoEmEdicao.quantidade,
+              estoque_minimo: this.equipamentoEmEdicao.estoque_minimo
+            })
+            .eq('id_equipamento', this.equipamentoEmEdicao.id_real);
 
-        this.closeModal()
-        await this.loadEquipamentos() 
-        this.showToast('Dados salvos com sucesso!')
+          if (errorEstoque) throw errorEstoque;
+          
+          this.showToast('Dados atualizados com sucesso!', 'success');
+
+        }
+        // --- lógica para inserir novo EPI ---
+        else {
+          // salva na tabela EPI e pede para o Supabase devolver o ID novo criado
+          const { data: novoEpi, error: errorEpi } = await supabase
+            .from('epi')
+            .insert({
+              nome: this.equipamentoEmEdicao.nome,
+              descricao: this.equipamentoEmEdicao.descricao,
+              certificado_autenticacao: this.equipamentoEmEdicao.certificado_autenticacao,
+              classificacao: this.equipamentoEmEdicao.classificacao,
+              tamanho: this.equipamentoEmEdicao.tamanho,
+              validade: this.equipamentoEmEdicao.validade || null,
+              ativo: true
+            })
+            .select('id')
+            .single();
+
+          if (errorEpi) throw errorEpi;
+
+          // com o ID novo em mãos, cria o estoque dele
+          const { error: errorEstoque } = await supabase
+            .from('estoque')
+            .insert({
+              id_equipamento: novoEpi.id,
+              quantidade_atual: this.equipamentoEmEdicao.quantidade,
+              estoque_minimo: this.equipamentoEmEdicao.estoque_minimo
+            });
+
+          if (errorEstoque) throw errorEstoque;
+
+          this.showToast('Novo EPI cadastrado com sucesso!', 'success');
+        }
+
+        // fecha e recarrega
+        this.closeModal();
+        await this.loadEquipamentos();
 
       } catch (error) {
-        console.error('Erro ao salvar:', error)
-        this.showToast('Erro ao salvar as alterações.')
+        console.error('Erro ao salvar:', error);
+        this.showToast('Erro ao salvar no banco de dados.', 'error');
       }
     },
 
@@ -238,6 +280,23 @@ export default {
       setTimeout(() => {
         this.toast.show = false
       }, 3000)
+    },
+
+    abrirModalNovo() {
+      this.activeDropdown = null;
+      // Cria um objeto "vazio" sem ID
+      this.equipamentoEmEdicao = {
+        id_real: null,
+        nome: '',
+        descricao: '',
+        certificado_autenticacao: '',
+        classificacao: 'Reutilizável',
+        tamanho: '',
+        validade: '',
+        quantidade: 0,
+        estoque_minimo: 0
+      };
+      this.showEditModal = true;
     }
   }
 }
@@ -360,11 +419,11 @@ export default {
     </table>
 
     <div style="height: 60px; width: 100%; display: block; clear: both;"></div>
-
+ 
     <div class="modal-overlay" v-if="showEditModal" @click.self="closeModal">
       <div class="modal-content">
         <div class="modal-header">
-          <h2>Editar Equipamento</h2>
+          <h2>{{ equipamentoEmEdicao.id_real ? 'Editar Equipamento' : 'Novo Equipamento' }}</h2>
           <button class="close-btn" @click="closeModal">×</button>
         </div>
         

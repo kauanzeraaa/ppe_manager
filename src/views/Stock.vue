@@ -150,7 +150,6 @@ export default {
         }
         // --- lógica para inserir novo EPI ---
         else {
-          // salva na tabela EPI e pede para o Supabase devolver o ID novo criado
           const { data: novoEpi, error: errorEpi } = await supabase
             .from('epi')
             .insert({

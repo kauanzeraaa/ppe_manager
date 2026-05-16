@@ -1,111 +1,238 @@
 <script>
+import { createClient } from "@supabase/supabase-js";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 export default {
   data() {
     return {
       formulario: {
         tipoMovimentacao: "",
-        equipamento: "",
+        equipamentoId: "",
         quantidade: "",
-        responsavel: "",
-        receptor: "",
         tipoReceptor: "",
+        receptorId: "",
         observacao: "",
         data: new Date().toISOString().slice(0, 16),
       },
-      movimentacoes: [
-        {
-          id: "01",
-          equipamento: "Capacete de Segurança",
-          tipoMovimentacao: "Entrega",
-          quantidade: 10,
-          responsavel: "João Silva",
-          receptor: "Maria Santos",
-          tipoReceptor: "Funcionário",
-          observacao: "Entrega conforme solicitado",
-          data: "2026-05-10T14:30",
-          status: "Entrega",
-        },
-        {
-          id: "02",
-          equipamento: "Luvas de Segurança",
-          tipoMovimentacao: "Devolução",
-          quantidade: 5,
-          responsavel: "Carlos Oliveira",
-          receptor: "Almoxarifado",
-          tipoReceptor: "Setor",
-          observacao: "Devolução de EPIs em bom estado",
-          data: "2026-05-09T10:15",
-          status: "Devolução",
-        },
-      ],
-      equipamentosDisponiveis: [
-        "Capacete de Segurança",
-        "Óculos de Proteção",
-        "Luvas de Segurança",
-        "Colete Refletor",
-        "Máscara Respiratória",
-        "Botina de Segurança",
-      ],
+      equipamentosDisponiveis: [],
+      receptoresDisponiveis: [],
+      userId: null,
+      userName: "",
+      loading: false,
+      toast: {
+        show: false,
+        message: "",
+        type: "success" // 'success' ou 'error'
+      }
     };
   },
+
+  async mounted() {
+    await this.fetchUsuarioLogado();
+    await this.loadEpiDisponiveis();
+  },
+
   methods: {
-    registrarMovimentacao() {
-      // Validação básica
+    // descobre quem é o usuário logado
+    async fetchUsuarioLogado() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          this.userId = user.id;
+          
+          const { data } = await supabase
+            .from("usuario")
+            .select("nome")
+            .eq("id", user.id)
+            .maybeSingle();
+            
+          if (data) {
+            this.userName = data.nome;
+          }
+        }
+      } catch (err) {
+        console.error("Erro ao buscar usuário logado:", err);
+      }
+    },
+
+    // carrega EPIs usando a View
+    async loadEpiDisponiveis() {
+      try {
+        const { data, error } = await supabase
+          .from("view_estoque_epi")
+          .select("id, nome, quantidade_atual")
+          .order("nome", { ascending: true });
+
+        if (error) throw error;
+        this.equipamentosDisponiveis = data || [];
+      } catch (err) {
+        console.error("Erro ao carregar EPIs:", err);
+        this.showToast("Erro ao carregar a lista de equipamentos.", "error");
+      }
+    },
+
+    // busca os nomes baseados no tipo escolhido
+    async buscarReceptores() {
+
+      // limpa a seleção anterior
+      this.formulario.receptorId = "";
+      this.receptoresDisponiveis = [];
+
+      if (!this.formulario.tipoReceptor) return;
+
+      // descobre em qual tabela procurar
+      let tabela = "";
+      if (this.formulario.tipoReceptor === "Aluno") tabela = "aluno";
+      else if (this.formulario.tipoReceptor === "Funcionário") tabela = "funcionario";
+      else if (this.formulario.tipoReceptor === "Visitante") tabela = "visitante";
+
+      try {
+        const { data, error } = await supabase
+          .from(tabela)
+          .select("id, nome")
+          .order("nome", { ascending: true });
+
+        if (error) throw error;
+        this.receptoresDisponiveis = data || [];
+      } catch (err) {
+        console.error(`Erro ao buscar ${tabela}:`, err);
+        this.showToast(`Erro ao carregar a lista de ${this.formulario.tipoReceptor}s.`, "error");
+      }
+    },
+
+    // registra a Movimentação e abate o estoque
+    async registrarMovimentacao() {
       if (
         !this.formulario.tipoMovimentacao ||
-        !this.formulario.equipamento ||
+        !this.formulario.equipamentoId ||
         !this.formulario.quantidade ||
-        !this.formulario.responsavel ||
-        !this.formulario.receptor ||
-        !this.formulario.tipoReceptor
+        !this.formulario.tipoReceptor ||
+        !this.formulario.receptorId
       ) {
-        alert("Por favor, preencha todos os campos obrigatórios");
+        this.showToast("Por favor, preencha todos os campos obrigatórios", "error");
         return;
       }
 
-      // Adicionar nova movimentação à tabela
-      const novaMovimentacao = {
-        id: String(this.movimentacoes.length + 1).padStart(2, "0"),
-        equipamento: this.formulario.equipamento,
-        tipoMovimentacao: this.formulario.tipoMovimentacao,
-        quantidade: parseInt(this.formulario.quantidade),
-        responsavel: this.formulario.responsavel,
-        receptor: this.formulario.receptor,
-        tipoReceptor: this.formulario.tipoReceptor,
-        observacao: this.formulario.observacao,
-        data: this.formulario.data,
-        status: this.formulario.tipoMovimentacao,
-      };
+      const qtdMovimentada = parseInt(this.formulario.quantidade);
+      const epiSelecionado = this.equipamentosDisponiveis.find(
+        (e) => e.id === this.formulario.equipamentoId
+      );
 
-      this.movimentacoes.unshift(novaMovimentacao);
-      this.limparFormulario();
+      if (!epiSelecionado) return;
+
+      try {
+        this.loading = true;
+
+        // impedir saída de estoque que não existe (ENTREGA)
+        if (this.formulario.tipoMovimentacao === "Entrega" && epiSelecionado.quantidade_atual < qtdMovimentada) {
+          this.showToast(`Saldo insuficiente no almoxarifado! O estoque atual deste EPI é de apenas ${epiSelecionado.quantidade_atual} unidades.`, "error");
+          return;
+        }
+
+        // (DEVOLUÇÃO)
+        if (this.formulario.tipoMovimentacao === "Devolução") {
+          // Busca todo o histórico de movimentações desse receptor para esse EPI específico
+          const { data: historico, error: errorHist } = await supabase
+            .from("movimentacao")
+            .select("tipo_movimentacao, quantidade")
+            .eq("id_equipamento", this.formulario.equipamentoId)
+            .eq("id_receptor", this.formulario.receptorId);
+
+          if (errorHist) throw errorHist;
+
+          // calcula o saldo real que a pessoa tem em posse dela atualmente
+          let saldoPessoa = 0;
+          if (historico) {
+            historico.forEach(mov => {
+              if (mov.tipo_movimentacao === "Entrega") {
+                saldoPessoa += mov.quantidade; // o que ela pegou
+              } else if (mov.tipo_movimentacao === "Devolução") {
+                saldoPessoa -= mov.quantidade; // p que ela já devolveu antes
+              }
+            });
+          }
+
+          // se a pessoa está tentando devolver mais do que ela tem em mãos
+          if (qtdMovimentada > saldoPessoa) {
+            this.showToast(`Operação cancelada! Este receptor possui ${saldoPessoa} unidade(s) deste EPI em posse dele. Não é possível devolver ${qtdMovimentada}.`, "error");
+            return;
+          }
+        }
+
+        // salvar a movimentação
+        const { error: errorMov } = await supabase
+          .from("movimentacao")
+          .insert({
+            id_equipamento: this.formulario.equipamentoId,
+            id_usuario: this.userId,
+            tipo_movimentacao: this.formulario.tipoMovimentacao,
+            quantidade: qtdMovimentada,
+            tipo_receptor: this.formulario.tipoReceptor,
+            id_receptor: this.formulario.receptorId,
+            observacao: this.formulario.observacao || "Sem observação",
+            create_at: new Date(this.formulario.data).toISOString(),
+            update_at: new Date().toISOString()
+          });
+
+        if (errorMov) throw errorMov;
+
+        // atualizar a tabela estoque
+        let novaQuantidade = epiSelecionado.quantidade_atual;
+        if (this.formulario.tipoMovimentacao === "Entrega") {
+          novaQuantidade -= qtdMovimentada;
+        } else {
+          novaQuantidade += qtdMovimentada;
+        }
+
+        const { error: errorEstoque } = await supabase
+          .from("estoque")
+          .update({ quantidade_atual: novaQuantidade })
+          .eq("id_equipamento", this.formulario.equipamentoId);
+
+        if (errorEstoque) throw errorEstoque;
+
+        this.showToast("Movimentação registrada e estoque atualizado com sucesso!", "success");
+        
+        this.limparFormulario();
+        await this.loadEpiDisponiveis(); 
+
+      } catch (error) {
+        console.error("Erro na operação:", error);
+        this.showToast("Erro ao salvar os dados. Verifique o console.", "error");
+      } finally {
+        this.loading = false;
+      }
     },
+    
+    // função para limpar o forms
     limparFormulario() {
       this.formulario = {
         tipoMovimentacao: "",
-        equipamento: "",
+        equipamentoId: "",
         quantidade: "",
-        responsavel: "",
         receptor: "",
         tipoReceptor: "",
         observacao: "",
         data: new Date().toISOString().slice(0, 16),
-      };
+      }
+      this.receptoresDisponiveis = []
     },
-    getStatusBadgeClass(status) {
-      return status === "Devolução" ? "green" : "orange";
-    },
-    formatarData(dataIso) {
-      if (!dataIso) return "";
-      const [data, hora] = dataIso.split("T");
-      const [ano, mes, dia] = data.split("-");
-      return `${dia}/${mes}/${ano} ${hora}`;
-    },
-    openActions(movimentacao) {
-      console.log("Abrir ações para movimentação", movimentacao.id);
+
+    // apresenta mensagem bonitinha na tela
+    showToast(message, type = 'success') {
+      this.toast.message = message;
+      this.toast.type = type;
+      this.toast.show = true;
+      
+      // esconde automaticamente após 3 segundos
+      setTimeout(() => {
+        this.toast.show = false;
+      }, 5000);
     },
   },
-};
+}
 </script>
 
 <template>
@@ -113,7 +240,6 @@ export default {
     <span class="badge">Movimentações</span>
     <h1 class="title">Movimentações de Estoque</h1>
 
-    <!-- FORMULÁRIO -->
     <div class="form-container">
       <h2 class="form-title">Registrar Movimentação</h2>
       <form @submit.prevent="registrarMovimentacao" class="form">
@@ -133,19 +259,10 @@ export default {
           </div>
           <div class="form-group">
             <label for="equipamento">Equipamento</label>
-            <select
-              id="equipamento"
-              v-model="formulario.equipamento"
-              class="form-input"
-              required
-            >
+            <select id="equipamento" v-model="formulario.equipamentoId" class="form-input" required>
               <option value="">Selecione...</option>
-              <option
-                v-for="item in equipamentosDisponiveis"
-                :key="item"
-                :value="item"
-              >
-                {{ item }}
+              <option v-for="item in equipamentosDisponiveis" :key="item.id" :value="item.id">
+                {{ item.nome }} (Estoque: {{ item.quantidade_atual }})
               </option>
             </select>
           </div>
@@ -163,42 +280,50 @@ export default {
         </div>
 
         <div class="form-row">
+
           <div class="form-group">
             <label for="responsavel">Responsável pela Movimentação</label>
-            <input
-              type="text"
-              id="responsavel"
-              v-model="formulario.responsavel"
-              class="form-input"
-              placeholder="Nome completo"
-              required
-            />
+            <input type="text" id="responsavel" :value="userName || 'Carregando usuário...'" class="form-input" disabled style="background-color: #f5f5f5; cursor: not-allowed;" />
           </div>
-          <div class="form-group">
-            <label for="receptor">Receptor</label>
-            <input
-              type="text"
-              id="receptor"
-              v-model="formulario.receptor"
-              class="form-input"
-              placeholder="Nome ou setor"
-              required
-            />
-          </div>
+
           <div class="form-group">
             <label for="tipoReceptor">Tipo do Receptor</label>
             <select
               id="tipoReceptor"
               v-model="formulario.tipoReceptor"
+              @change="buscarReceptores" 
               class="form-input"
               required
             >
               <option value="">Selecione...</option>
+              <option value="Aluno">Aluno</option>
               <option value="Funcionário">Funcionário</option>
-              <option value="Setor">Setor</option>
-              <option value="Terceiro">Terceiro</option>
+              <option value="Visitante">Visitante</option>
             </select>
           </div>
+          
+          <div class="form-group">
+            <label for="receptor">Nome do Receptor</label>
+            <select
+              id="receptor"
+              v-model="formulario.receptorId"
+              class="form-input"
+              :disabled="receptoresDisponiveis.length === 0"
+              required
+            >
+              <option value="">
+                {{ formulario.tipoReceptor ? 'Selecione o nome...' : 'Escolha o tipo primeiro' }}
+              </option>
+              <option
+                v-for="pessoa in receptoresDisponiveis"
+                :key="pessoa.id"
+                :value="pessoa.id"
+              >
+                {{ pessoa.nome }}
+              </option>
+            </select>
+          </div>
+
         </div>
 
         <div class="form-row">
@@ -241,54 +366,10 @@ export default {
       </form>
     </div>
 
-    <!-- TABELA DE MOVIMENTAÇÕES -->
-    <div class="table-container">
-      <h2 class="table-title">Histórico de Movimentações</h2>
-      <table class="table">
-        <thead class="header-table">
-          <tr>
-            <th>ID</th>
-            <th>EQUIPAMENTO</th>
-            <th>TIPO DE MOVIMENTAÇÃO</th>
-            <th>QUANTIDADE</th>
-            <th>RESPONSÁVEL</th>
-            <th>RECEPTOR</th>
-            <th>TIPO DO RECEPTOR</th>
-            <th>OBSERVAÇÃO</th>
-            <th>DATA</th>
-            <th>STATUS</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody class="content-table">
-          <tr v-for="mov in movimentacoes" :key="mov.id">
-            <td>{{ mov.id }}</td>
-            <td class="equipment-cell">{{ mov.equipamento }}</td>
-            <td>{{ mov.tipoMovimentacao }}</td>
-            <td class="center">{{ mov.quantidade }}</td>
-            <td>{{ mov.responsavel }}</td>
-            <td>{{ mov.receptor }}</td>
-            <td>{{ mov.tipoReceptor }}</td>
-            <td class="observation-cell">{{ mov.observacao || "-" }}</td>
-            <td class="center">{{ formatarData(mov.data) }}</td>
-            <td>
-              <span :class="['badge-status', getStatusBadgeClass(mov.status)]">
-                {{ mov.status }}
-              </span>
-            </td>
-            <td class="actions-cell">
-              <button
-                class="actions-btn"
-                @click="openActions(mov)"
-                aria-label="Ações"
-              >
-                ⋮
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div :class="['toast-notification', toast.type, { 'show': toast.show }]">
+      {{ toast.message }}
     </div>
+
   </div>
 </template>
 
@@ -318,7 +399,7 @@ export default {
   font-family: var(--font-primary);
 }
 
-/* FORMULÁRIO */
+/* Form */
 .form-container {
   background-color: #ffffff;
   border-radius: 20px;
@@ -454,157 +535,38 @@ export default {
   border-color: #d0d0d0;
 }
 
-/* TABELA */
-.table-container {
-  margin-top: 40px;
-}
-
-.table-title {
-  font-size: 1.4rem;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 20px;
-  font-family: var(--font-primary);
-}
-
-.table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 20px;
-  overflow: hidden;
-}
-
-.header-table {
-  background-color: #f39c12;
+/* Toast Notification */
+.toast-notification {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 16px 24px;
+  border-radius: 8px;
   color: white;
+  font-weight: 500;
+  font-size: 14px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  z-index: 9999;
+  
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.header-table th:first-child {
-  border-top-left-radius: 20px;
-  width: 50px;
+.toast-notification.show {
+  transform: translateY(0);
+  opacity: 1;
 }
 
-.header-table th:last-child {
-  border-top-right-radius: 20px;
+.toast-notification.success {
+  background-color: #2ecc71; /* Verde */
 }
 
-.header-table tr {
-  height: 35px;
+.toast-notification.error {
+  background-color: #e74c3c; /* Vermelho */
 }
 
-.header-table th {
-  padding: 12px 15px;
-  font-size: 12px;
-  font-weight: 600;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.header-table th:nth-child(2),
-.header-table th:nth-child(5),
-.header-table th:nth-child(6),
-.header-table th:nth-child(8) {
-  text-align: left;
-}
-
-.content-table tr {
-  height: 45px;
-  background-image: linear-gradient(
-    to right,
-    transparent 0%,
-    #e0e0e0 3%,
-    #e0e0e0 98%,
-    transparent 0%
-  );
-  background-repeat: no-repeat;
-  background-position: left bottom;
-  background-size: 100% 1px;
-  transition: background-color 0.2s ease;
-}
-
-.content-table tr:hover {
-  background-color: #f9f9f9;
-}
-
-.content-table td {
-  padding: 12px 15px;
-  font-size: 13px;
-  font-weight: 400;
-  color: #333;
-  text-align: center;
-}
-
-.content-table td.equipment-cell,
-.content-table td.observation-cell {
-  text-align: left;
-}
-
-.content-table tr:last-child td {
-  border-bottom: none;
-}
-
-.center {
-  text-align: center;
-}
-
-.observation-cell {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.badge-status {
-  display: inline-block;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 12px;
-  text-align: center;
-  min-width: 80px;
-}
-
-.badge-status.green {
-  background-color: #e6f9ea;
-  color: #2d8a40;
-}
-
-.badge-status.orange {
-  background-color: #fff3e0;
-  color: #b96900;
-}
-
-.actions-cell {
-  width: 48px;
-  padding: 0 8px;
-  text-align: center;
-}
-
-.actions-btn {
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-  color: #666;
-  padding: 6px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.actions-btn:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: #333;
-}
-
-.actions-btn:focus {
-  outline: 2px solid rgba(243, 156, 18, 0.25);
-}
-
-/* RESPONSIVIDADE */
+/* responsividade */
 @media (max-width: 1024px) {
   .form-row {
     grid-template-columns: repeat(2, 1fr);
@@ -622,18 +584,6 @@ export default {
 
   .form-row {
     grid-template-columns: 1fr;
-  }
-
-  .table {
-    font-size: 12px;
-  }
-
-  .content-table td {
-    padding: 10px 8px;
-  }
-
-  .header-table th {
-    padding: 10px 8px;
   }
 }
 </style>

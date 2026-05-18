@@ -69,6 +69,9 @@ defineProps({
   border: 1px solid #f5f5f5;
   border-left: 4px solid var(--bg-color, #f39c12);
   transition: all 0.3s ease;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
 }
 
 .report-card:hover {
@@ -80,7 +83,7 @@ defineProps({
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .card-info {
@@ -93,6 +96,7 @@ defineProps({
   color: #333;
   margin: 0;
   font-family: var(--font-primary);
+  line-height: 1.15;
 }
 
 .card-subtitle {
@@ -100,6 +104,7 @@ defineProps({
   color: #999;
   margin: 4px 0 0 0;
   font-family: var(--font-primary);
+  line-height: 1.2;
 }
 
 .card-icon {
@@ -116,7 +121,7 @@ defineProps({
 .value-container {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .value {
@@ -124,14 +129,15 @@ defineProps({
   font-weight: 700;
   color: var(--bg-color, #f39c12);
   font-family: var(--font-primary);
+  line-height: 1;
 }
 
 .trend {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.85rem;
-  padding: 4px 8px;
+  font-size: 0.8rem;
+  padding: 4px 7px;
   border-radius: 6px;
   font-weight: 600;
   font-family: var(--font-primary);
@@ -159,6 +165,7 @@ defineProps({
 @media (max-width: 768px) {
   .report-card {
     padding: 16px;
+    min-height: 0;
   }
 
   .card-title {

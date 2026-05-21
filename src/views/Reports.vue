@@ -130,7 +130,7 @@ const generatedAt = computed(() =>
       <div class="page-header-info">
         <span class="badge">Relatórios</span>
         <h1 class="title">Relatórios e Conformidade de EPIs</h1>
-        <span class="version-note">Consulta para apoio à gestão e à tomada de decisão</span>
+        <span class="version-note">Painel analítico para gestão executiva e decisão administrativa</span>
       </div>
     </div>
 
@@ -182,7 +182,7 @@ const generatedAt = computed(() =>
 
       <div class="ca-banner">
         <div class="ca-banner-copy">
-          <strong>Controle de CA</strong>
+          <strong>Controle executivo de CA</strong>
           <span>
             {{ conformanceRate }} válidos, {{ caVencendo }} vencendo, {{ caVencidos }} vencidos e {{ caSemCadastro }} sem cadastro.
           </span>

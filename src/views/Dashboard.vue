@@ -24,6 +24,11 @@ const {
   totalEpis,
   emEstoque,
   itensCriticos,
+  caValidos,
+  caVencendo,
+  caVencidos,
+  caSemCadastro,
+  conformidadePercentual,
   carregarDashboard
 } = useDashboard()
 
@@ -37,15 +42,6 @@ const currentFilter = ref('today')
    DADOS AUXILIARES
 ========================================================= */
 
-const conformidadeTaxa = ref(92)
-
-const caValidos = ref(18)
-const caVencendo = ref(3)
-const caVencidos = ref(1)
-const caSemCadastro = ref(0)
-
-const entregasContador = ref(24)
-const devolucoesContador = ref(8)
 const solicitacoesContador = ref(4)
 
 /* =========================================================
@@ -81,8 +77,8 @@ watch(currentFilter, async () => {
 const summaryData = computed(() => {
 
   const totalAcoes =
-    entregasContador.value +
-    devolucoesContador.value
+    totalEpis.value +
+    itensCriticos.value
 
   const sufixoTempo =
     currentFilter.value === 'today'
@@ -95,9 +91,9 @@ const summaryData = computed(() => {
     value: `${totalAcoes} movimentações`,
 
     text:
-      `${entregasContador.value} entregas e ` +
-      `${devolucoesContador.value} devoluções ${sufixoTempo}. ` +
-      `${solicitacoesContador.value} solicitações pendentes.`
+      `${emEstoque.value} unidades em estoque ${sufixoTempo}. ` +
+      `${itensCriticos.value} itens críticos e ` +
+      `${solicitacoesContador.value} solicitações em atenção.`
   }
 
 })
@@ -108,11 +104,11 @@ const summaryData = computed(() => {
 
 const conformityColor = computed(() => {
 
-  if (conformidadeTaxa.value >= 90) {
+  if (conformidadePercentual.value >= 90) {
     return chartPalette.success
   }
 
-  if (conformidadeTaxa.value >= 75) {
+  if (conformidadePercentual.value >= 75) {
     return chartPalette.orange
   }
 
@@ -128,7 +124,7 @@ const kpis = computed(() => [
 
   {
     title: 'Total de EPIs cadastrados',
-    subtitle: 'Base operacional atual',
+    subtitle: 'Base monitorada',
     value: totalEpis.value,
     icon: '🧰',
     backgroundColor: chartPalette.orange,
@@ -158,7 +154,7 @@ const kpis = computed(() => [
 
   {
     title: 'CA válidos',
-    subtitle: 'Certificados em dia',
+    subtitle: 'Conformes no período',
     value: caValidos.value,
     icon: '📋',
     backgroundColor: chartPalette.success,
@@ -169,7 +165,7 @@ const kpis = computed(() => [
   {
     title: 'Conformidade',
     subtitle: 'Situação geral',
-    value: `${conformidadeTaxa.value}%`,
+    value: `${conformidadePercentual.value}%`,
     icon: '✓',
     backgroundColor: conformityColor.value,
     trend: 'stable',
@@ -193,8 +189,8 @@ const alerts = computed(() => {
       description:
         `${itensCriticos.value} EPIs abaixo do mínimo.`,
       tone: 'danger',
-      actionText: 'Repor',
-      to: '/estoque'
+      actionText: 'Revisar estoque',
+      to: '/stock'
     })
 
   }
@@ -206,8 +202,8 @@ const alerts = computed(() => {
       description:
         `${solicitacoesContador.value} solicitações aguardando aprovação.`,
       tone: 'info',
-      actionText: 'Analisar',
-      to: '/historico'
+      actionText: 'Analisar histórico',
+      to: '/historic'
     })
 
   }
@@ -219,8 +215,8 @@ const alerts = computed(() => {
       description:
         `${caVencendo.value} vencendo e ${caVencidos.value} vencidos.`,
       tone: 'warning',
-      actionText: 'Revisar',
-      to: '/relatorios'
+      actionText: 'Abrir relatórios',
+      to: '/reports'
     })
 
   }
@@ -237,26 +233,26 @@ const quickActions = [
 
   {
     title: 'Registrar movimentação',
-    description: 'Lançar entrega ou devolução.',
-    to: '/movimentacao'
+    description: 'Controlar entradas e saídas.',
+    to: '/movement'
   },
 
   {
     title: 'Abrir relatórios',
-    description: 'Consultar conformidade.',
-    to: '/relatorios'
+    description: 'Consultar indicadores executivos.',
+    to: '/reports'
   },
 
   {
     title: 'Revisar estoque',
-    description: 'Editar dados dos EPIs.',
-    to: '/estoque'
+    description: 'Atuar sobre itens críticos.',
+    to: '/stock'
   },
 
   {
     title: 'Consultar histórico',
-    description: 'Ver movimentações recentes.',
-    to: '/historico'
+    description: 'Auditar movimentações recentes.',
+    to: '/historic'
   }
 
 ]
@@ -406,53 +402,57 @@ const movementOverviewData = computed(() => [
 
     <header class="page-header">
 
-      <div class="page-header-copy">
+      <div class="page-header-top">
 
-        <span class="badge">
-          Dashboard
-        </span>
+        <div class="page-header-copy">
 
-        <h1 class="title">
-          Visão Geral do Sistema de EPIs
-        </h1>
+          <span class="badge">
+            Dashboard
+          </span>
 
-        <p class="subtitle">
-          Resumo operacional do estoque,
-          conformidade e movimentações.
-        </p>
+          <h1 class="title">
+            Dashboard Executivo de EPIs
+          </h1>
+
+          <p class="subtitle">
+            Panorama gerencial de estoque,
+            conformidade e alertas prioritários.
+          </p>
+
+        </div>
+
+        <div class="page-header-tools">
+
+          <nav class="time-filter-wrapper">
+
+            <button
+              :class="['filter-btn', { active: currentFilter === 'today' }]"
+              @click="currentFilter = 'today'"
+            >
+              Hoje
+            </button>
+
+            <button
+              :class="['filter-btn', { active: currentFilter === 'week' }]"
+              @click="currentFilter = 'week'"
+            >
+              Semana
+            </button>
+
+            <button
+              :class="['filter-btn', { active: currentFilter === 'month' }]"
+              @click="currentFilter = 'month'"
+            >
+              Mês
+            </button>
+
+          </nav>
+
+        </div>
 
       </div>
 
       <section class="summary-card">
-
-        <!-- FILTROS -->
-
-        <nav class="time-filter-wrapper">
-
-          <button
-            :class="['filter-btn', { active: currentFilter === 'today' }]"
-            @click="currentFilter = 'today'"
-          >
-            Hoje
-          </button>
-
-          <button
-            :class="['filter-btn', { active: currentFilter === 'week' }]"
-            @click="currentFilter = 'week'"
-          >
-            Semana
-          </button>
-
-          <button
-            :class="['filter-btn', { active: currentFilter === 'month' }]"
-            @click="currentFilter = 'month'"
-          >
-            Mês
-          </button>
-
-        </nav>
-
-        <!-- RESUMO CA -->
 
         <div class="ca-strip">
 
@@ -477,17 +477,19 @@ const movementOverviewData = computed(() => [
 
         <div class="hero-card">
 
-          <span class="hero-label">
-            Resumo do período
-          </span>
+          <span class="hero-label">Resumo do período</span>
 
-          <strong class="hero-value">
-            {{ summaryData.value }}
-          </strong>
+          <div class="hero-inline">
 
-          <span class="hero-text">
-            {{ summaryData.text }}
-          </span>
+            <strong class="hero-value">
+              {{ summaryData.value }}
+            </strong>
+
+            <span class="hero-text">
+              {{ summaryData.text }}
+            </span>
+
+          </div>
 
         </div>
 
@@ -704,7 +706,7 @@ const movementOverviewData = computed(() => [
   padding-bottom: 32px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
 }
 
 /* =========================================================
@@ -727,17 +729,33 @@ const movementOverviewData = computed(() => [
 
 .page-header {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: -18px;
+}
+
+.page-header-top {
+  display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 28px;
-  margin-bottom: 12px;
+  gap: 12px;
 }
 
 .page-header-copy {
-  max-width: 760px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  padding: 2px 0;
+}
+
+.page-header-tools {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  flex-shrink: 0;
 }
 
 .badge {
@@ -754,18 +772,18 @@ const movementOverviewData = computed(() => [
 .title {
   margin: 0;
   color: #243444;
-  font-size: clamp(2rem, 2vw, 3.4rem);
-  line-height: 1;
+  font-size: clamp(2rem, 2.2vw, 2.7rem);
+  line-height: 1.04;
   font-weight: 800;
-  max-width: 780px;
+  max-width: 760px;
 }
 
 .subtitle {
   color: #607086;
   margin: 0;
-  font-size: 0.95rem;
-  max-width: 760px;
-  line-height: 1.5;
+  font-size: 0.92rem;
+  max-width: 620px;
+  line-height: 1.55;
 }
 
 /* =========================================================
@@ -777,22 +795,21 @@ const movementOverviewData = computed(() => [
 ========================================================= */
 
 .summary-card {
-  width: 340px;
-  flex-shrink: 0;
   background:
     linear-gradient(
       135deg,
       #ffffff,
       #fbfcfe
     );
-  border-radius: 20px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 14px 18px;
   border: 1px solid #e7edf3;
   box-shadow:
     0 6px 18px rgba(15, 23, 42, 0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
 }
 
 /* =========================================================
@@ -806,6 +823,7 @@ const movementOverviewData = computed(() => [
   padding: 4px;
   border-radius: 16px;
   box-sizing: border-box;
+  min-width: 264px;
 }
 
 .filter-btn {
@@ -838,14 +856,14 @@ const movementOverviewData = computed(() => [
 .ca-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
+  gap: 10px;
 }
 
 .ca-pill {
   background: #ffffff;
   border: 1px solid #eef2f6;
   border-radius: 16px;
-  padding: 10px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -893,21 +911,31 @@ const movementOverviewData = computed(() => [
   opacity: 0.7;
   margin-bottom: 2px;
   color: #f39c12;
+  display: block;
+  margin-bottom: 4px;
 }
 
 .hero-value {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 800;
   line-height: 1.05;
-  margin-bottom: 2px;
+  margin: 0;
   color: #243444;
+  white-space: nowrap;
 }
 
 .hero-text {
-  font-size: 0.82rem;
-  line-height: 1.5;
+  font-size: 0.9rem;
+  line-height: 1.6;
   color: #607086;
-  max-width: 700px;
+  max-width: none;
+}
+
+.hero-inline {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
 /* =========================================================
@@ -917,12 +945,23 @@ const movementOverviewData = computed(() => [
 @media (max-width: 1200px) {
 
   .page-header {
+    gap: 16px;
+  }
+
+  .page-header-top {
     flex-direction: column;
-    gap: 18px;
+  }
+
+  .page-header-tools {
+    justify-content: flex-start;
   }
 
   .summary-card {
-    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
 }
@@ -930,15 +969,23 @@ const movementOverviewData = computed(() => [
 @media (max-width: 768px) {
 
   .summary-card {
-    width: 100%;
+    padding: 16px;
   }
 
   .time-filter-wrapper {
     height: auto;
+    min-width: 0;
+    width: 100%;
   }
 
   .ca-pill {
     min-height: auto;
+  }
+
+  .hero-inline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 
 }
@@ -948,8 +995,9 @@ const movementOverviewData = computed(() => [
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
+  margin-top: 0;
 }
 
 /* =========================================================
@@ -960,7 +1008,7 @@ const movementOverviewData = computed(() => [
 .analytics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 22px;
+  gap: 12px;
 }
 
 /* =========================================================
@@ -971,13 +1019,13 @@ const movementOverviewData = computed(() => [
 .chart-block {
   background-color: #ffffff;
   border-radius: 18px;
-  padding: 22px;
+  padding: 20px;
   border: 1px solid #eef1f4;
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04);
 }
 
 .panel-header {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .panel-kicker {
@@ -1105,14 +1153,6 @@ const movementOverviewData = computed(() => [
 
 /* =========================================================
    FEED
-========================================================= */
-
-.activity-panel {
-  margin-bottom: 10px;
-}
-
-/* =========================================================
-   FEED MELHORADO
 ========================================================= */
 
 .activity-panel {
@@ -1273,32 +1313,14 @@ const movementOverviewData = computed(() => [
 ========================================================= */
 
 @media (max-width: 1200px) {
-
-  .metrics-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-}
-
-@media (max-width: 1024px) {
-
   .overview-grid,
   .analytics-grid {
     grid-template-columns: 1fr;
   }
 
-  .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
 }
 
 @media (max-width: 768px) {
-
-  .metrics-grid,
-  .actions-grid {
-    grid-template-columns: 1fr;
-  }
 
   .activity-item {
     grid-template-columns: 1fr;
@@ -1307,6 +1329,14 @@ const movementOverviewData = computed(() => [
   .alert-inner-layout {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
   }
 
 }

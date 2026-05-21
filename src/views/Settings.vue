@@ -5,14 +5,74 @@ import { ref } from 'vue'
 
 const abaAtiva = ref('geral')
 
+const ambienteForm = ref({
+  nome: '',
+  tipoAtividade: '',
+  epis: []
+})
+
+const episDisponiveis = [
+  'Capacete',
+  'Óculos',
+  'Luvas',
+  'Máscara',
+  'Protetor auricular',
+  'Botina'
+]
+
+const ambientesCadastrados = ref([
+  {
+    id: 1,
+    nome: 'Oficina de Usinagem',
+    tipoAtividade: 'Aulas práticas com máquinas operatrizes',
+    epis: ['Óculos', 'Luvas', 'Protetor auricular']
+  },
+  {
+    id: 2,
+    nome: 'Área de Soldagem',
+    tipoAtividade: 'Processos de solda e corte',
+    epis: ['Capacete', 'Óculos', 'Luvas', 'Botina']
+  }
+])
+
 const abas = [
   { id: 'geral', nome: 'Geral' },
-  { id: 'epis', nome: 'EPIs e CA' },
-  { id: 'cargos', nome: 'Cargos' },
+  { id: 'epis', nome: 'Parâmetros de EPI e CA' },
+  { id: 'cargos', nome: 'Ambientes e EPIs' },
   { id: 'alertas', nome: 'CA e Alertas' },
   { id: 'estoque', nome: 'Estoque' },
   { id: 'relatorios', nome: 'Relatórios' }
 ]
+
+function toggleEpiAmbiente(epi) {
+  const lista = ambienteForm.value.epis
+
+  if (lista.includes(epi)) {
+    ambienteForm.value.epis = lista.filter(item => item !== epi)
+    return
+  }
+
+  ambienteForm.value.epis = [...lista, epi]
+}
+
+function salvarAmbiente() {
+  if (!ambienteForm.value.nome.trim() || !ambienteForm.value.tipoAtividade.trim()) {
+    return
+  }
+
+  ambientesCadastrados.value.unshift({
+    id: Date.now(),
+    nome: ambienteForm.value.nome.trim(),
+    tipoAtividade: ambienteForm.value.tipoAtividade.trim(),
+    epis: [...ambienteForm.value.epis]
+  })
+
+  ambienteForm.value = {
+    nome: '',
+    tipoAtividade: '',
+    epis: []
+  }
+}
 </script>
 
 <template>
@@ -183,9 +243,11 @@ const abas = [
 
       </div>
 
-      <button class="btn-save">
-        Salvar Configurações
-      </button>
+      <div class="config-actions">
+        <button class="btn-save">
+          Salvar Configurações
+        </button>
+      </div>
 
     </section>
 
@@ -199,11 +261,11 @@ const abas = [
       <div class="card-header">
 
         <h2>
-          Cadastro de EPIs e CA
+          Parâmetros de EPI e CA
         </h2>
 
         <p>
-          Controle técnico dos equipamentos e certificados.
+          Regras técnicas e critérios de conformidade aplicados aos equipamentos.
         </p>
 
       </div>
@@ -212,37 +274,41 @@ const abas = [
 
         <label class="form-group">
 
-          <span>Nome do EPI</span>
+          <span>Validade padrão do CA</span>
 
           <input
-            type="text"
-            placeholder="Capacete de segurança"
+            type="number"
+            placeholder="365 dias"
           />
 
         </label>
 
         <label class="form-group">
 
-          <span>Número do CA</span>
+          <span>Antecedência do alerta</span>
 
           <input
-            type="text"
-            placeholder="CA 00000"
+            type="number"
+            placeholder="30 dias"
           />
 
         </label>
 
         <label class="form-group">
 
-          <span>Validade do CA</span>
+          <span>Classificação padrão</span>
 
-          <input type="date" />
+          <select>
+            <option>Selecione</option>
+            <option>Reutilizável</option>
+            <option>Descartável</option>
+          </select>
 
         </label>
 
         <label class="form-group">
 
-          <span>Vida útil</span>
+          <span>Vida útil padrão</span>
 
           <input
             type="number"
@@ -260,7 +326,7 @@ const abas = [
           <input type="checkbox" />
 
           <span>
-            Exige higienização
+            Exigir higienização
           </span>
 
         </label>
@@ -270,16 +336,18 @@ const abas = [
           <input type="checkbox" />
 
           <span>
-            Exige manutenção
+            Exigir manutenção
           </span>
 
         </label>
 
       </div>
 
-      <button class="btn-save">
-        Salvar EPI
-      </button>
+      <div class="config-actions">
+        <button class="btn-save">
+          Salvar Parâmetros
+        </button>
+      </div>
 
     </section>
 
@@ -293,11 +361,11 @@ const abas = [
       <div class="card-header">
 
         <h2>
-          Cargos e Funções
+          Ambientes e EPIs obrigatórios
         </h2>
 
         <p>
-          Associe EPIs obrigatórios aos cargos.
+          Defina os EPIs exigidos por ambiente, oficina ou tipo de atividade prática.
         </p>
 
       </div>
@@ -306,24 +374,24 @@ const abas = [
 
         <label class="form-group">
 
-          <span>Cargo</span>
+          <span>Nome do ambiente</span>
 
-          <select>
-            <option>Selecione</option>
-            <option>Docente</option>
-            <option>Laboratorista</option>
-            <option>Estagiário</option>
-          </select>
+          <input
+            v-model="ambienteForm.nome"
+            type="text"
+            placeholder="Ex.: Oficina de Mecânica"
+          />
 
         </label>
 
         <label class="form-group">
 
-          <span>Setor</span>
+          <span>Tipo de atividade</span>
 
           <input
+            v-model="ambienteForm.tipoAtividade"
             type="text"
-            placeholder="Laboratório"
+            placeholder="Ex.: Aula prática com máquinas e bancadas"
           />
 
         </label>
@@ -332,31 +400,59 @@ const abas = [
 
       <div class="checkbox-list">
 
-        <label>
-          <input type="checkbox" />
-          Capacete
-        </label>
-
-        <label>
-          <input type="checkbox" />
-          Óculos
-        </label>
-
-        <label>
-          <input type="checkbox" />
-          Luvas
-        </label>
-
-        <label>
-          <input type="checkbox" />
-          Máscara
+        <label
+          v-for="epi in episDisponiveis"
+          :key="epi"
+          class="checkbox-item"
+        >
+          <input
+            type="checkbox"
+            :checked="ambienteForm.epis.includes(epi)"
+            @change="toggleEpiAmbiente(epi)"
+          />
+          {{ epi }}
         </label>
 
       </div>
 
-      <button class="btn-save">
-        Salvar Associação
-      </button>
+      <section class="linked-list-card">
+        <div class="linked-list-header">
+          <h3>Ambientes cadastrados</h3>
+          <span>{{ ambientesCadastrados.length }} registros</span>
+        </div>
+
+        <div class="linked-list">
+          <article
+            v-for="ambiente in ambientesCadastrados"
+            :key="ambiente.id"
+            class="linked-item"
+          >
+            <div class="linked-item-main">
+              <strong>{{ ambiente.nome }}</strong>
+              <small>{{ ambiente.tipoAtividade }}</small>
+            </div>
+
+            <div class="linked-tags">
+              <span
+                v-for="epi in ambiente.epis"
+                :key="`${ambiente.id}-${epi}`"
+                class="mini-tag"
+              >
+                {{ epi }}
+              </span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <div class="config-actions">
+        <button class="btn-save">
+          Salvar Associação
+        </button>
+        <button class="btn-save" type="button" @click="salvarAmbiente">
+          Salvar Ambiente e EPIs
+        </button>
+      </div>
 
     </section>
 
@@ -429,9 +525,11 @@ const abas = [
 
       </div>
 
-      <button class="btn-save">
-        Salvar Alertas
-      </button>
+      <div class="config-actions">
+        <button class="btn-save">
+          Salvar Alertas
+        </button>
+      </div>
 
     </section>
 
@@ -480,9 +578,11 @@ const abas = [
 
       </div>
 
-      <button class="btn-save">
-        Salvar Estoque
-      </button>
+      <div class="config-actions">
+        <button class="btn-save">
+          Salvar Estoque
+        </button>
+      </div>
 
     </section>
 
@@ -555,9 +655,11 @@ const abas = [
 
       </div>
 
-      <button class="btn-save">
-        Salvar Relatórios
-      </button>
+      <div class="config-actions">
+        <button class="btn-save">
+          Salvar Relatórios
+        </button>
+      </div>
 
     </section>
 
@@ -570,42 +672,29 @@ const abas = [
 /* PAGE */
 
 .page {
-
   width: 100%;
-
   display: flex;
-
   flex-direction: column;
-
-  gap: 20px;
-
+  gap: 16px;
   padding-bottom: 32px;
 }
 
 /* HEADER */
 
 .page-header {
-
-  display: flex;
-
-  justify-content: space-between;
-
-  align-items: flex-start;
-
-  gap: 24px;
-
-  padding-top: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  align-items: stretch;
+  gap: 18px;
 }
 
 .page-header-copy {
-
   display: flex;
-
   flex-direction: column;
-
   gap: 12px;
-
-  max-width: 760px;
+  justify-content: center;
+  max-width: 780px;
+  padding: 8px 0;
 }
 
 .badge {
@@ -655,34 +744,21 @@ const abas = [
 /* SUMMARY */
 
 .summary-card {
-
-  width: 520px;
-
-  flex-shrink: 0;
-
   background:
     linear-gradient(
       135deg,
       #ffffff,
       #fbfcfe
     );
-
   border-radius: 18px;
-
   padding: 18px 20px;
-
   border: 1px solid #e7edf3;
-
   box-shadow:
     0 6px 18px rgba(15, 23, 42, 0.05);
-
   display: flex;
-
   flex-direction: column;
-
+  justify-content: center;
   gap: 16px;
-
-  margin-top: 72px;
 }
 
 .summary-title {
@@ -699,35 +775,19 @@ const abas = [
 }
 
 .summary-grid {
-
   display: grid;
-
-  grid-template-columns:
-    1.4fr
-    0.7fr
-    1fr;
-
-  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .summary-item {
-
   display: flex;
-
   flex-direction: column;
-
   gap: 6px;
-
-  padding-left: 14px;
-
-  border-left: 3px solid #eef2f6;
-}
-
-.summary-item:first-child {
-
-  padding-left: 0;
-
-  border-left: none;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #edf1f5;
 }
 
 .summary-item small {
@@ -753,41 +813,30 @@ const abas = [
 /* TABS */
 
 .tabs-container {
-
   display: flex;
-
   flex-wrap: wrap;
-
   gap: 10px;
-
-  padding: 8px;
-
+  padding: 10px;
   background: #f7f9fc;
-
   border: 1px solid #e7edf3;
-
   border-radius: 18px;
+  position: sticky;
+  top: 16px;
+  z-index: 20;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 }
 
 .tab-button {
-
   border: none;
-
   background: transparent;
-
   color: #607086;
-
   padding: 12px 16px;
-
   border-radius: 12px;
-
   cursor: pointer;
-
   font-size: 0.82rem;
-
   font-weight: 700;
-
   transition: 0.2s ease;
+  white-space: nowrap;
 }
 
 .tab-button:hover {
@@ -812,25 +861,18 @@ const abas = [
 /* CARD */
 
 .config-card {
-
   background:
     linear-gradient(
       180deg,
       #ffffff 0%,
       #fcfdff 100%
     );
-
   border: 1px solid #e7edf3;
-
   border-radius: 24px;
-
   padding: 24px;
-
   box-shadow:
     0 8px 24px rgba(15, 23, 42, 0.04);
-
   position: relative;
-
   overflow: hidden;
 }
 
@@ -857,14 +899,12 @@ const abas = [
 /* CARD HEADER */
 
 .card-header {
-
   display: flex;
-
   flex-direction: column;
-
   gap: 6px;
-
-  margin-bottom: 22px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eef2f6;
 }
 
 .card-header h2 {
@@ -888,12 +928,8 @@ const abas = [
 /* FORM */
 
 .form-grid {
-
   display: grid;
-
-  grid-template-columns:
-    repeat(auto-fit, minmax(260px, 1fr));
-
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
 }
 
@@ -919,35 +955,25 @@ const abas = [
 
 .form-group input,
 .form-group select {
-
   width: 100%;
-
   min-height: 46px;
-
   border: 1px solid #dce5ee;
-
   border-radius: 12px;
-
-  background: #ffffff;
-
+  background: #fbfcfe;
   padding: 0 14px;
-
   font-size: 0.86rem;
-
   color: #243444;
-
   box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus {
-
   outline: none;
-
   border-color: #f39c12;
-
   box-shadow:
     0 0 0 4px rgba(243, 156, 18, 0.12);
+  background: #ffffff;
 }
 
 /* CHECKBOX */
@@ -977,26 +1003,97 @@ const abas = [
 }
 
 .checkbox-item {
-
   display: flex;
-
   align-items: center;
-
   gap: 10px;
-
-  padding: 12px;
-
+  padding: 14px 16px;
   border-radius: 12px;
-
-  background: #ffffff;
-
+  background: #fbfcfe;
   border: 1px solid #edf1f5;
-
   font-size: 0.84rem;
-
   font-weight: 600;
-
   color: #243444;
+}
+
+.linked-list-card {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  background: #f8fafc;
+  border: 1px solid #e8eef5;
+}
+
+.linked-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.linked-list-header h3 {
+  margin: 0;
+  color: #243444;
+  font-size: 0.96rem;
+}
+
+.linked-list-header span {
+  color: #607086;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.linked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.linked-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #e9eff5;
+}
+
+.linked-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.linked-item-main strong {
+  color: #243444;
+  font-size: 0.9rem;
+}
+
+.linked-item-main small {
+  color: #607086;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.linked-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.mini-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(43, 74, 105, 0.08);
+  color: #2b4a69;
+  font-size: 0.74rem;
+  font-weight: 700;
 }
 
 /* HINT */
@@ -1034,25 +1131,26 @@ const abas = [
 
 /* BUTTON */
 
-.btn-save {
-
+.config-actions {
+  display: flex;
+  justify-content: flex-end;
   margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #eef2f6;
+}
 
+.btn-save {
   border: none;
-
   border-radius: 12px;
-
-  padding: 13px 18px;
-
+  min-width: 220px;
+  min-height: 46px;
+  padding: 0 18px;
   background: #f39c12;
-
   color: white;
-
   font-size: 0.84rem;
-
   font-weight: 700;
-
   cursor: pointer;
+  box-shadow: 0 8px 18px rgba(243, 156, 18, 0.18);
 }
 
 .btn-save:hover {
@@ -1064,36 +1162,19 @@ const abas = [
 @media (max-width: 1200px) {
 
   .page-header {
-
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
 
   .summary-card {
-
     width: 100%;
   }
 
   .summary-grid {
-
     grid-template-columns: 1fr;
   }
 
   .summary-item {
-
-    padding-left: 0;
-
-    border-left: none;
-
-    padding-bottom: 12px;
-
-    border-bottom: 1px solid #eef2f6;
-  }
-
-  .summary-item:last-child {
-
-    border-bottom: none;
-
-    padding-bottom: 0;
+    padding: 12px 14px;
   }
 }
 
@@ -1107,13 +1188,29 @@ const abas = [
   }
 
   .config-card {
-
     padding: 18px;
   }
 
   .tabs-container {
-
     overflow-x: auto;
+  }
+
+  .linked-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .linked-tags {
+    justify-content: flex-start;
+  }
+
+  .config-actions {
+    justify-content: stretch;
+  }
+
+  .btn-save {
+    width: 100%;
+    min-width: 0;
   }
 }
 

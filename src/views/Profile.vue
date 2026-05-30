@@ -1,593 +1,795 @@
 <script setup>
-const usuario = {
-  nome: 'Simone Queiroz',
-  cargo: 'Gerente Administrativa',
-  email: 'simone@epicontrol.com',
-  setor: 'Gestão Operacional',
-  perfil: 'Administrador',
-  unidade: 'SENAI SC Joinville Sul',
-  idFuncional: 'ADM-0248',
-  ultimoAcesso: 'Hoje às 08:42'
-}
+import { ref, onMounted, computed } from "vue";
+import { useRouter } from "vue-router";
+import { createClient } from "@supabase/supabase-js";
 
-const permissoes = [
-  'Gerenciar estoque',
-  'Editar cadastros de EPI',
-  'Aprovar solicitações',
-  'Acessar relatórios executivos',
-  'Configurar parâmetros do sistema',
-  'Gerenciar usuários'
-]
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+const router = useRouter();
 
-const escopos = [
-  'Estoque central',
-  'Conformidade NR-6',
-  'Monitoramento de CA',
-  'Acompanhamento de setores e unidades'
-]
+// Estados
+const loading = ref(true);
+const usuarioLogado = ref({ id: "", nome: "", funcao: "", telefone: "", foto_perfil: "", ativo: true, email: "" });
+const usuarios = ref([]);
+const fileInput = ref(null);
 
-const indicadores = [
-  { titulo: 'Itens críticos', valor: '4', apoio: 'Abaixo do mínimo' },
-  { titulo: 'CA vencendo', valor: '1', apoio: 'Monitoramento imediato' },
-  { titulo: 'Solicitações pendentes', valor: '4', apoio: 'Aguardando análise' },
-  { titulo: 'Conformidade geral', valor: '85%', apoio: 'Indicador atual' }
-]
+// Modal de Gerenciar Usuários Admin
+const showModal = ref(false);
+const modalMode = ref("create");
+const formModal = ref({ id: "", nome: "", telefone: "", funcao: "Operador", ativo: true, email: "", senha: "" });
 
-const historico = [
-  { data: 'Hoje', acao: 'Relatório executivo exportado' },
-  { data: 'Ontem', acao: 'Aprovação de solicitação de reposição' },
-  { data: '19/05', acao: 'Atualização de parâmetros de estoque' },
-  { data: '18/05', acao: 'Revisão de conformidade concluída' }
-]
+// Modal para alterar senha
+const showPasswordModal = ref(false);
+const novaSenha = ref("");
+
+// Criação dos toasts de notificação
+const toast = ref({ show: false, message: "", type: "success" });
+const showToast = (message, type = "success") => {
+  toast.value = { show: true, message, type };
+  setTimeout(() => { toast.value.show = false; }, 3000);
+};
+
+// Computa se o usuario é adm
+const isAdmin = computed(() => usuarioLogado.value.funcao === 'Administrador');
+
+onMounted(async () => {
+  await carregarDadosIniciais();
+});
+
+// Função para carregar os dados iniciais do perfil e, se for admin, a lista de usuários
+const carregarDadosIniciais = async () => {
+  try {
+    loading.value = true;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return router.push("/");
+
+    const { data: perfilLogado } = await supabase
+      .from("usuario")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    if (perfilLogado) {
+      usuarioLogado.value = { ...perfilLogado, email: user.email };
+    }
+
+    if (isAdmin.value) {
+      await carregarListaUsuarios();
+    }
+  } catch (error) {
+    console.error(error);
+    showToast("Erro ao carregar os dados.", "error");
+  } finally {
+    loading.value = false;
+  }
+};
+
+const carregarListaUsuarios = async () => {
+  const { data, error } = await supabase.from("usuario").select("*").order("nome");
+  if (!error && data) usuarios.value = data;
+};
+
+// Funções de perfil
+const dispararUpload = () => fileInput.value.click();
+
+// Função para atualizar a foto de perfil do usuário
+const atualizarFoto = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    showToast("A imagem deve ter no máximo 2MB.", "error");
+    return;
+  }
+
+  try {
+    showToast("Enviando foto...", "success");
+    const extensao = file.name.split('.').pop();
+    const nomeArquivo = `${usuarioLogado.value.id}-${Date.now()}.${extensao}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("user_images")
+      .upload(nomeArquivo, file, { cacheControl: "3600", upsert: false });
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage.from("user_images").getPublicUrl(nomeArquivo);
+    const urlPublica = urlData.publicUrl;
+
+    const { error: dbError } = await supabase
+      .from("usuario")
+      .upsert({ foto_perfil: urlPublica })
+      .eq("id", usuarioLogado.value.id);
+
+    if (dbError) throw dbError;
+
+    usuarioLogado.value.foto_perfil = urlPublica;
+    showToast("Foto atualizada com sucesso!", "success");
+
+  } catch (error) {
+    console.error(error);
+    showToast("Erro ao salvar a foto no servidor.", "error");
+  } finally {
+    fileInput.value.value = null;
+  }
+};
+
+// Função para salvar as alterações do perfil do usuário
+const salvarMeuPerfil = async () => {
+  try {
+    const { error } = await supabase
+      .from("usuario")
+      .update({ nome: usuarioLogado.value.nome, telefone: usuarioLogado.value.telefone })
+      .eq("id", usuarioLogado.value.id);
+
+    if (error) throw error;
+    showToast("Seus dados foram atualizados!", "success");
+  } catch (error) {
+    showToast("Erro ao atualizar seus dados.", "error");
+  }
+};
+
+// Função para alterar a senha do usuário logado
+const alterarMinhaSenha = async () => {
+  if (novaSenha.value.length < 6) {
+    showToast("A senha precisa ter no mínimo 6 caracteres.", "error");
+    return;
+  }
+
+  try {
+    loading.value = true;
+    const { error } = await supabase.auth.updateUser({
+      password: novaSenha.value
+    });
+
+    if (error) throw error;
+    showToast("Sua senha foi atualizada com sucesso!", "success");
+    showPasswordModal.value = false;
+    novaSenha.value = "";
+  } catch (error) {
+    console.error(error);
+    showToast("Erro ao alterar senha.", "error");
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Funções para abrir os modais de criação e edição de usuários (Admin) e para salvar as alterações feitas nesses modais
+const abrirModalNovo = () => {
+  modalMode.value = "create";
+  formModal.value = { id: "", nome: "", telefone: "", funcao: "Operador", ativo: true, email: "", senha: "" };
+  showModal.value = true;
+};
+
+// Modal de edição do formulário - apenas com os dados que podem ser editados
+const abrirModalEditar = (user) => {
+  modalMode.value = "edit";
+  formModal.value = { ...user, email: "", senha: "" };
+  showModal.value = true;
+};
+
+// Função para salvar as alterações feitas no modal de criação/edição de usuários (Admin)
+const salvarUsuarioModal = async () => {
+  try {
+    loading.value = true;
+
+    if (modalMode.value === "create") {
+      
+      const clienteTemporario = createClient(supabaseUrl, supabaseKey, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false
+        }
+      });
+
+      const { data: authData, error: authError } = await clienteTemporario.auth.signUp({
+        email: formModal.value.email.trim(),
+        password: formModal.value.senha,
+      });
+
+      if (authError) throw authError;
+
+      // Ao invés de criar um novo usuário do zero, cria a conta de autenticação primeiro
+      // e depois atualiza o perfil com os dados adicionais
+      const { error: dbError } = await supabase.from("usuario").update({
+        nome: formModal.value.nome,
+        telefone: formModal.value.telefone,
+        funcao: formModal.value.funcao,
+        ativo: formModal.value.ativo
+      }).eq("id", authData.user.id); // Apontamos para o ID que acabou de nascer
+
+      if (dbError) throw dbError;
+      showToast("Usuário criado com sucesso!", "success");
+
+    } else {
+      // Modo Edição
+      const { error } = await supabase.from("usuario").update({
+        nome: formModal.value.nome,
+        telefone: formModal.value.telefone,
+        funcao: formModal.value.funcao,
+        ativo: formModal.value.ativo
+      }).eq("id", formModal.value.id);
+
+      if (error) throw error;
+      showToast("Usuário updated com sucesso!", "success");
+      
+      if (formModal.value.id === usuarioLogado.value.id) await carregarDadosIniciais();
+    }
+
+    showModal.value = false;
+    await carregarListaUsuarios();
+  } catch (error) {
+    console.error("Erro ao salvar:", error);
+    let msg = error.message;
+    if (msg.includes("already registered")) {
+      msg = "Este e-mail já está em uso por outro usuário.";
+    }
+    showToast(msg || "Erro ao salvar usuário.", "error");
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Função para extrair as iniciais do nome do usuário (usada para o avatar placeholder)
+const getInitials = (nome) => {
+  if (!nome) return "U";
+  return nome.split(" ").slice(0, 2).map(n => n[0]).join("").toUpperCase();
+};
 </script>
 
 <template>
-  <div class="profile-page">
-    <header class="profile-hero">
-      <div class="hero-main">
-        <div class="avatar">
-          SQ
+  <div class="page" v-if="!loading">
+    <div :class="['layout-grid', { 'is-admin': isAdmin }]">
+      
+      <section class="panel my-profile">
+        <div class="panel-header">
+          <h2>Meu Perfil</h2>
         </div>
-
-        <div class="hero-content">
-          <span class="badge">
-            Perfil Administrativo
-          </span>
-
-          <h1 class="title">
-            {{ usuario.nome }}
-          </h1>
-
-          <p class="subtitle">
-            {{ usuario.cargo }}
-          </p>
-
-          <div class="hero-tags">
-            <span class="hero-tag">
-              {{ usuario.perfil }}
-            </span>
-
-            <span class="hero-tag">
-              {{ usuario.setor }}
-            </span>
-
-            <span class="hero-tag active">
-              Conta ativa
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <aside class="hero-side">
-        <div class="hero-side-item">
-          <small>Unidade</small>
-          <strong>{{ usuario.unidade }}</strong>
-        </div>
-
-        <div class="hero-side-item">
-          <small>Último acesso</small>
-          <strong>{{ usuario.ultimoAcesso }}</strong>
-        </div>
-
-        <div class="hero-side-item">
-          <small>ID funcional</small>
-          <strong>{{ usuario.idFuncional }}</strong>
-        </div>
-      </aside>
-    </header>
-
-    <div class="profile-grid">
-      <section class="profile-card">
-        <div class="card-header">
-          <h2>Dados da conta</h2>
-          <p>Informacoes institucionais e identificacao no sistema.</p>
-        </div>
-
-        <div class="info-list">
-          <div class="info-item">
-            <small>E-mail corporativo</small>
-            <strong>{{ usuario.email }}</strong>
+        
+        <div class="profile-content">
+          <div class="avatar-section">
+            <div class="avatar-container" @click="dispararUpload">
+              <img v-if="usuarioLogado.foto_perfil" :src="usuarioLogado.foto_perfil" alt="Avatar" />
+              <div v-else class="avatar-placeholder">{{ getInitials(usuarioLogado.nome) }}</div>
+              <div class="avatar-overlay">Trocar</div>
+            </div>
+            <input type="file" ref="fileInput" @change="atualizarFoto" accept="image/*" hidden />
+            <div class="avatar-info">
+              <h3>{{ usuarioLogado.nome }}</h3>
+              <span class="role-badge">{{ usuarioLogado.funcao }}</span>
+            </div>
           </div>
 
-          <div class="info-item">
-            <small>Unidade</small>
-            <strong>{{ usuario.unidade }}</strong>
-          </div>
+          <form @submit.prevent="salvarMeuPerfil" class="form-minimal">
+            <div class="form-group">
+              <label>Nome Completo</label>
+              <input type="text" v-model="usuarioLogado.nome" required />
+            </div>
+            <div class="form-group">
+              <label>E-mail (Login)</label>
+              <input type="email" :value="usuarioLogado.email" disabled class="disabled-input" />
+            </div>
+            <div class="form-group">
+              <label>Telefone / Ramal</label>
+              <input type="text" v-model="usuarioLogado.telefone" placeholder="(00) 00000-0000" />
+            </div>
+            
+            <div class="profile-actions">
+              <button type="submit" class="btn-primary">Atualizar Meus Dados</button>
+              <button type="button" class="btn-outline w-full" @click="showPasswordModal = true">
+                <img src="../assets/padlock.png" alt="Alterar Senha" class="icon" />
+                Alterar Minha Senha
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
 
-          <div class="info-item">
-            <small>Setor</small>
-            <strong>{{ usuario.setor }}</strong>
-          </div>
+      <section class="panel user-management" v-if="isAdmin">
+        <div class="panel-header flex-between">
+          <h2>Gerenciamento de Usuários</h2>
+          <button class="btn-outline" @click="abrirModalNovo">+ Novo Usuário</button>
+        </div>
 
-          <div class="info-item">
-            <small>Perfil de acesso</small>
-            <strong>{{ usuario.perfil }}</strong>
+        <div class="user-list">
+          <div v-for="user in usuarios" :key="user.id" class="user-item">
+            <div class="user-item-left">
+              <div class="mini-avatar">
+                <img v-if="user.foto_perfil" :src="user.foto_perfil" />
+                <span v-else>{{ getInitials(user.nome) }}</span>
+              </div>
+              <div class="user-details">
+                <strong>{{ user.nome }} <span v-if="user.id === usuarioLogado.id" class="me-tag">(Você)</span></strong>
+                <small>{{ user.funcao }} • <span :class="user.ativo ? 'text-green' : 'text-red'">{{ user.ativo ? 'Ativo' : 'Inativo' }}</span></small>
+              </div>
+            </div>
+            <button class="btn-icon" @click="abrirModalEditar(user)">Editar</button>
           </div>
         </div>
       </section>
 
-      <section class="profile-card">
-        <div class="card-header">
-          <h2>Segurança</h2>
-          <p>Controles de acesso e proteção da conta administrativa.</p>
-        </div>
-
-        <div class="security-actions">
-          <button class="btn-secondary">
-            Alterar senha
-          </button>
-
-          <button class="btn-secondary">
-            Encerrar sessões
-          </button>
-
-          <button class="btn-secondary">
-            Verificar acessos recentes
-          </button>
-        </div>
-      </section>
     </div>
 
-    <div class="profile-grid profile-grid--double">
-      <section class="profile-card">
-        <div class="card-header">
-          <h2>Permissões</h2>
-          <p>Capacidades disponíveis no ambiente administrativo.</p>
+    <div class="modal-overlay" v-if="showModal" @click.self="showModal = false">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>{{ modalMode === 'create' ? 'Criar Novo Usuário' : 'Editar Usuário' }}</h2>
+          <button class="close-btn" @click="showModal = false">×</button>
         </div>
-
-        <div class="pill-list">
-          <span
-            v-for="item in permissoes"
-            :key="item"
-            class="pill-item"
-          >
-            {{ item }}
-          </span>
-        </div>
-      </section>
-
-      <section class="profile-card">
-        <div class="card-header">
-          <h2>Escopo de gestão</h2>
-          <p>Áreas e responsabilidades vinculadas ao cargo.</p>
-        </div>
-
-        <div class="scope-list">
-          <div
-            v-for="item in escopos"
-            :key="item"
-            class="scope-item"
-          >
-            <strong>{{ item }}</strong>
-            <span>Ativo</span>
+        
+        <form @submit.prevent="salvarUsuarioModal" class="form-minimal modal-form">
+          <div class="form-group">
+            <label>Nome Completo</label>
+            <input type="text" v-model="formModal.nome" required />
           </div>
-        </div>
-      </section>
+          
+          <div class="form-group">
+            <label>Telefone</label>
+            <input type="text" v-model="formModal.telefone" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Função</label>
+              <select v-model="formModal.funcao">
+                <option value="Operador">Operador</option>
+                <option value="Administrador">Administrador</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status da Conta</label>
+              <select v-model="formModal.ativo">
+                <option :value="true">Ativo</option>
+                <option :value="false">Inativo</option>
+              </select>
+            </div>
+          </div>
+
+          <template v-if="modalMode === 'create'">
+            <hr class="divider" />
+            <div class="form-group">
+              <label>E-mail de Login</label>
+              <input type="email" v-model="formModal.email" required />
+            </div>
+            <div class="form-group">
+              <label>Senha Provisória</label>
+              <input type="password" v-model="formModal.senha" required minlength="6" />
+            </div>
+          </template>
+
+          <div class="modal-actions">
+            <button type="button" class="btn-text" @click="showModal = false">Cancelar</button>
+            <button type="submit" class="btn-primary">Salvar Usuário</button>
+          </div>
+        </form>
+      </div>
     </div>
 
-    <section class="profile-card">
-      <div class="card-header">
-        <h2>Indicadores sob responsabilidade</h2>
-        <p>Pontos de acompanhamento contínuo no contexto gerencial.</p>
-      </div>
-
-      <div class="indicator-grid">
-        <article
-          v-for="item in indicadores"
-          :key="item.titulo"
-          class="indicator-card"
-        >
-          <small>{{ item.titulo }}</small>
-          <strong>{{ item.valor }}</strong>
-          <span>{{ item.apoio }}</span>
-        </article>
-      </div>
-    </section>
-
-    <section class="profile-card">
-      <div class="card-header">
-        <h2>Histórico administrativo</h2>
-        <p>Últimas ações registradas no contexto de gestão.</p>
-      </div>
-
-      <div class="history-list">
-        <div
-          v-for="item in historico"
-          :key="item.acao"
-          class="history-item"
-        >
-          <small>{{ item.data }}</small>
-          <strong>{{ item.acao }}</strong>
+    <div class="modal-overlay" v-if="showPasswordModal" @click.self="showPasswordModal = false">
+      <div class="modal-content modal-small">
+        <div class="modal-header">
+          <h2>Alterar Senha</h2>
+          <button class="close-btn" @click="showPasswordModal = false">×</button>
         </div>
+        
+        <form @submit.prevent="alterarMinhaSenha" class="form-minimal modal-form">
+          <div class="form-group">
+            <label>Nova Senha</label>
+            <input type="password" v-model="novaSenha" required minlength="6" placeholder="Mínimo 6 caracteres" />
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-text" @click="showPasswordModal = false">Cancelar</button>
+            <button type="submit" class="btn-primary">Confirmar Nova Senha</button>
+          </div>
+        </form>
       </div>
-    </section>
+    </div>
+
+    <div :class="['toast-notification', toast.type, { 'show': toast.show }]">
+      {{ toast.message }}
+    </div>
   </div>
 </template>
 
 <style scoped>
-.profile-page {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding-bottom: 32px;
+/* Estilos gerais */
+.page {
+  width: 101.2%;
+  height: 100%;
+  margin-top: -1rem;
+  padding-bottom: 40px;
 }
 
-.profile-hero {
-  background: linear-gradient(135deg, #ffffff, #f9fbfd);
-  border: 1px solid #e7edf3;
-  border-radius: 24px;
-  padding: 24px;
+/* Layout principal */
+.layout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.layout-grid.is-admin {
+  grid-template-columns: 400px 1fr;
+  align-items: start;
+}
+
+/* Paineis */
+.panel {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f1f5f9;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 24px 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.panel-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.flex-between {
   display: flex;
   justify-content: space-between;
-  align-items: stretch;
-  gap: 24px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+  align-items: center;
+  gap: 40px;
 }
 
-.hero-main {
+/* Perfil - esquerda */
+.profile-content {
+  padding: 24px;
+}
+
+.avatar-section {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
-.avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 28px;
-  background: linear-gradient(135deg, #2b4a69, #3f6388);
+.avatar-container {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  background: #334155;
+  flex-shrink: 0;
+}
+
+.avatar-container img, .avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.9rem;
-  font-weight: 800;
-  box-shadow: 0 10px 24px rgba(43, 74, 105, 0.2);
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0;
+  transition: 0.2s;
 }
 
-.hero-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
+.avatar-container:hover .avatar-overlay {
+  opacity: 1;
 }
 
-.badge {
-  width: fit-content;
-  background: rgba(243, 156, 18, 0.12);
-  color: #f39c12;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
+.avatar-info h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.2rem;
+  color: #0f172a;
 }
 
-.title {
-  margin: 0;
-  color: #243444;
-  font-size: clamp(2rem, 2vw, 2.8rem);
-  line-height: 1;
-  font-weight: 800;
-}
-
-.subtitle {
-  margin: 0;
-  color: #607086;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-.hero-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 2px;
-}
-
-.hero-tag {
-  background: #f4f7fa;
-  border: 1px solid #e4ebf2;
-  border-radius: 999px;
-  padding: 8px 14px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: #4f6478;
-}
-
-.hero-tag.active {
-  background: rgba(47, 166, 106, 0.12);
-  border-color: rgba(47, 166, 106, 0.18);
-  color: #2fa66a;
-}
-
-.hero-side {
-  width: 320px;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.hero-side-item {
-  background: white;
-  border: 1px solid #edf1f5;
-  border-radius: 16px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  justify-content: center;
-  min-height: 78px;
-}
-
-.hero-side-item small,
-.info-item small,
-.indicator-card small,
-.history-item small {
-  color: #607086;
-  font-size: 0.72rem;
-  font-weight: 700;
+.role-badge {
+  background: #f39c1220;
+  color: #d68910;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
-.hero-side-item strong,
-.info-item strong {
-  color: #243444;
-  font-size: 0.95rem;
-}
-
-.profile-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-}
-
-.profile-grid--double {
-  align-items: start;
-}
-
-.profile-card {
-  background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
-  border: 1px solid #e7edf3;
-  border-radius: 22px;
-  padding: 22px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
-}
-
-.card-header {
-  margin-bottom: 16px;
-}
-
-.card-header h2 {
-  margin: 0 0 6px 0;
-  color: #243444;
-  font-size: 1.05rem;
-}
-
-.card-header p {
-  margin: 0;
-  color: #607086;
-  line-height: 1.5;
-}
-
-.info-list,
-.history-list,
-.scope-list,
-.security-actions {
+/* Form minimalista */
+.form-minimal {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
-.info-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.info-item {
+.form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-height: 74px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: #f8fafc;
-  border: 1px solid #edf1f5;
 }
 
-.btn-secondary {
-  border: 1px solid #dce5ee;
-  background: white;
-  border-radius: 14px;
-  min-height: 50px;
-  padding: 0 16px;
-  cursor: pointer;
-  font-weight: 700;
-  color: #243444;
-  transition: 0.2s;
-  text-align: left;
-}
-
-.btn-secondary:hover {
-  border-color: #f39c12;
-}
-
-.pill-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-content: flex-start;
-}
-
-.pill-item {
-  display: inline-flex;
-  align-items: center;
-  min-height: 42px;
-  padding: 0 14px;
-  border-radius: 999px;
-  background: #f6f9fc;
-  border: 1px solid #e6edf5;
-  color: #304255;
-  font-size: 0.82rem;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.scope-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: #f8fafc;
-  border: 1px solid #edf1f5;
-}
-
-.scope-item strong {
-  color: #243444;
-  font-size: 0.92rem;
-}
-
-.scope-item span {
-  color: #2fa66a;
-  background: rgba(47, 166, 106, 0.12);
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.indicator-grid {
+.form-row {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
-.indicator-card {
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.form-group input, .form-group select {
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #334155;
+  background: #f8fafc;
+  transition: all 0.2s;
+}
+
+.form-group input:focus, .form-group select:focus {
+  outline: none;
+  border-color: #f39c12;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.1);
+}
+
+.disabled-input {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.divider {
+  border: 0;
+  height: 1px;
+  background: #e2e8f0;
+  margin: 8px 0;
+}
+
+.profile-actions {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: 10px;
-  padding: 16px;
-  border-radius: 16px;
-  background: #f8fafc;
-  border: 1px solid #edf1f5;
-  min-height: 144px;
+  margin-top: 8px;
 }
 
-.indicator-card strong {
-  color: #243444;
+/* Lista de usuarios - direita */
+.user-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.2s;
+}
+
+.user-item:hover {
+  background: #f8fafc;
+}
+
+.user-item:last-child {
+  border-bottom: none;
+}
+
+.user-item-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mini-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #475569;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.mini-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-details strong {
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.user-details small {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.me-tag {
+  color: #f39c12;
+  font-size: 0.75rem;
+  margin-left: 4px;
+}
+
+.text-green { color: #10b981; font-weight: 500; }
+.text-red { color: #ef4444; font-weight: 500; }
+
+/* Estilos para botões */
+.btn-primary {
+  background: #f39c12;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-primary:hover { background: #d68910; }
+
+.btn-outline {
+  background: transparent;
+  color: #f39c12;
+  border: 1px solid #f39c12;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  text-align: center;
+}
+.btn-outline:hover {
+  background: #f39c12;
+  color: white;
+}
+.w-full { width: 100%; padding: 10px; border-radius: 8px; }
+
+.btn-icon {
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.btn-icon:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.btn-text {
+  background: transparent;
+  color: #64748b;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-text:hover { color: #0f172a; }
+
+.icon{
+  width: 16px;
+  height: 16px;
+  margin-right: 2px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.modal-small {
+  max-width: 350px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.modal-header h2 { margin: 0; font-size: 1.1rem; color: #0f172a; }
+
+.close-btn {
+  background: transparent;
+  border: none;
   font-size: 1.5rem;
+  color: #64748b;
+  cursor: pointer;
   line-height: 1;
 }
 
-.indicator-card span {
-  color: #607086;
-  font-size: 0.82rem;
-  line-height: 1.5;
+.modal-form {
+  padding: 24px;
 }
 
-.history-item {
-  display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
-  align-items: start;
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
   gap: 16px;
-  padding: 0 0 14px;
-  border-bottom: 1px solid #edf1f5;
+  margin-top: 16px;
 }
 
-.history-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+/* Toast */
+.toast-notification {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 16px 24px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  font-size: 14px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  z-index: 9999;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+.toast-notification.show { transform: translateY(0); opacity: 1; }
+.toast-notification.success { background-color: #2ecc71; }
+.toast-notification.error { background-color: #e74c3c; }
 
-.history-item strong {
-  color: #243444;
-  text-align: left;
-  line-height: 1.5;
-}
-
-@media (max-width: 1200px) {
-  .indicator-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .hero-side {
-    width: 280px;
-  }
-}
-
-@media (max-width: 1024px) {
-  .profile-grid,
-  .indicator-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .profile-hero {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .hero-side {
-    width: 100%;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
-  .hero-main {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .profile-grid,
-  .indicator-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .info-list {
-    grid-template-columns: 1fr;
-  }
-
-  .profile-card {
-    padding: 18px;
-  }
-
-  .history-item,
-  .scope-item {
-    grid-template-columns: 1fr;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .history-item strong {
-    text-align: left;
-  }
-
-  .hero-side {
-    grid-template-columns: 1fr;
-  }
+/* Responsividade */
+@media (max-width: 900px) {
+  .layout-grid.is-admin { grid-template-columns: 1fr; }
 }
 </style>

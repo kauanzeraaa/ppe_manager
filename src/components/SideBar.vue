@@ -65,13 +65,15 @@ function isCurrentRoute(path) {
 /* Sidebar container */
 .sidebar {
   position: fixed;
-  inset: 20px 0 20px 20px;
+  inset: 20px 0 28px 20px;
   width: 75px;
+  height: calc(100vh - 48px);
   background: #2b4a69;
   border-radius: 28px;
   overflow: hidden;
   transition: width 0.38s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 100;
+  display: flex;
 }
 
 .sidebar.expanded {
@@ -83,7 +85,7 @@ function isCurrentRoute(path) {
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 3rem 10px 1.5rem;
+  padding: 1.25rem 10px 2.5rem;
   margin: 0;
   list-style: none;
 }
@@ -91,15 +93,19 @@ function isCurrentRoute(path) {
 .nav-group {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
 
 .nav-divider {
   height: 1px;
   background: rgba(255, 255, 255, 0.12);
-  margin: 10px 4px;
+  margin: 10px 4px 14px;
   flex-shrink: 0;
-  margin-top: 80px;
+}
+
+.teste {
+  margin-top: auto;
+  padding-bottom: 56px;
 }
 
 /* Item */
@@ -141,8 +147,8 @@ function isCurrentRoute(path) {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 10px;
-  height: 52px;
+  padding: 6px 10px;
+  height: 48px;
   text-decoration: none;
   border-radius: 14px;
   cursor: pointer;

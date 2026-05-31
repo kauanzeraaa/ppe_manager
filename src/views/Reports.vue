@@ -284,7 +284,7 @@ const formatarData = (dataStr) => {
 
       <div class="action-right no-print">
         <button class="btn-pdf" @click="imprimir">
-          📄 Gerar PDF
+          Gerar PDF
         </button>
       </div>
     </section>
@@ -563,20 +563,27 @@ const formatarData = (dataStr) => {
 .report-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   text-align: left;
   font-size: 13px;
-  white-space: nowrap;
+  white-space: normal;
+}
+
+.report-table th,
+.report-table td {
+  white-space: normal;
+  word-break: break-word;
 }
 
 .report-table th {
   background-color: #F39C12;
   color: white;
-  padding: 16px;
+  padding: 14px;
   font-weight: 600;
 }
 
 .report-table td {
-  padding: 16px;
+  padding: 14px;
   border-bottom: 1px solid #F2F4F4;
   vertical-align: middle;
   color: #444;
@@ -612,9 +619,19 @@ const formatarData = (dataStr) => {
 @media print {
   body * { visibility: hidden; }
   #area-relatorio, #area-relatorio * { visibility: visible; }
-  #area-relatorio { position: absolute; left: 0; top: 0; width: 100vw; }
+  #area-relatorio { position: absolute; left: 0; top: 0; width: 100%; }
   .no-print, .no-print * { display: none !important; }
-  .table-container { box-shadow: none !important; }
+  .table-container { box-shadow: none !important; overflow: visible !important; width: 100% !important; }
+  .report-table {
+    width: 100% !important;
+    table-layout: fixed !important;
+  }
+  .report-table th,
+  .report-table td {
+    white-space: normal !important;
+    word-break: break-word !important;
+    padding: 10px !important;
+  }
   .report-table th { background-color: #F39C12 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .avatar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

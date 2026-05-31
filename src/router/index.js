@@ -9,7 +9,6 @@ import Historic from '../views/Historic.vue'
 import Profile from '../views/Profile.vue'
 import Movement from '../views/Movement.vue'
 import Reports from '../views/Reports.vue'
-import Settings from '../views/Settings.vue'
 import Stock from '../views/Stock.vue'
 
 // Define as rotas
@@ -22,7 +21,6 @@ const routes = [
     { path : '/profile', component: Profile },
     { path : '/movement', component: Movement },
     { path : '/reports', component: Reports },
-    { path : '/settings', component: Settings },
     { path : '/stock', component: Stock }
 
 ]

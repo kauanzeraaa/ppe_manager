@@ -26,16 +26,11 @@ function confirmLogout() {
 
 <template>
     <section class="buttons">
-        <router-link to="/settings" class="button-configuration">
-            <span class="icon">
-                <img src="../assets/icons_actions/settings.png" alt="Settings Icon">
-            </span>
-        </router-link>
         <button class="button-exit" type="button" @click="openLogoutModal">
             <span class="icon">
                 <img src="../assets/icons_actions/exit-alt.png" alt="Exit Icon">
             </span>
-        </button>   
+        </button>
 
         <!-- Modal de Logout -->
         <div v-if="showLogoutModal" class="modal-backdrop" @click="closeLogoutModal">

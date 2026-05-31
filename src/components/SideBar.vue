@@ -7,8 +7,7 @@ import stockIcon from '../assets/icons_sidebar/stock.png'
 import requestIcon from '../assets/icons_sidebar/request.png'
 import recordIcon from '../assets/icons_sidebar/record.png'
 import historicIcon from '../assets/icons_sidebar/historic.png'
-import settingsIcon from '../assets/icons_sidebar/settings.png'
-import profileIcon from '../assets/icons_sidebar/profile.png'   
+import profileIcon from '../assets/icons_sidebar/profile.png'
 
 const route = useRoute()
 const isActive = ref(false)
@@ -22,7 +21,6 @@ const topItems = [
 ]
 
 const bottomItems = [
-  { label: 'Configuração', to: '/settings', icon: settingsIcon, alt: 'Configuração', color: '#F39C12' },
   { label: 'Perfil', to: '/profile', icon: profileIcon, alt: 'Perfil', color: '#F39C12' },
 ]
 

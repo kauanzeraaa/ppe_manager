@@ -49,8 +49,13 @@ const showTopBarActions = computed(() => sidebarRoutes.includes(route.path))
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  
+  /* previne que as telas fiquem achatadas */
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* Obriga as telas de dentro a usarem 100% da largura */
+  width: 100%;
 }
-
 .app-shell--with-sidebar .app-content {
   padding: 40px 40px 40px 140px;
 }

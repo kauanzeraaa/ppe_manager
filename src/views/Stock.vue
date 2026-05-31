@@ -13,9 +13,19 @@ export default {
       searchTerm: '',
       selectedClassificacao: null,
       userRole: null, // guarda 'Administrador' ou 'Operador'
+      userId: null, // id do usuário logado (para registrar a solicitação)
       showEditModal: false, // controla se o modal aparece
       equipamentoEmEdicao: null, // guarda os dados do epi que foi clicado
       activeDropdown: null,
+
+      // Modal de solicitação de reposição (Operador)
+      showRepoModal: false,
+      repoEpi: null, // EPI alvo da solicitação
+      repoForm: {
+        quantidade: 1,
+        justificativa: ''
+      },
+      savingRepo: false,
 
       toast: {
         show: false,
@@ -45,6 +55,8 @@ export default {
       try{
         const { data: {user}} = await supabase.auth.getUser()
         if(user){
+          this.userId = user.id
+
           const {data, error} = await supabase
             .from('usuario')
             .select('funcao')
@@ -265,9 +277,56 @@ export default {
       }
     },
 
+    // Abre o modal de solicitação de reposição para o EPI escolhido
     solicitarReposicao(equipamento) {
       this.activeDropdown = null // Fecha o menu
-      this.showToast(`Em breve: Solicitação de reposição para o EPI ${equipamento.nome} enviada ao Administrador!`)
+      this.repoEpi = equipamento
+      this.repoForm = { quantidade: 1, justificativa: '' }
+      this.showRepoModal = true
+    },
+
+    fecharModalReposicao() {
+      this.showRepoModal = false
+      this.repoEpi = null
+    },
+
+    // Registra a solicitação de reposição na tabela 'solicitacao' (status Pendente)
+    async confirmarSolicitacao() {
+      const quantidade = parseInt(this.repoForm.quantidade)
+
+      if (!quantidade || quantidade < 1) {
+        this.showToast('Informe uma quantidade válida (mínimo 1).', 'error')
+        return
+      }
+
+      if (!this.userId) {
+        this.showToast('Não foi possível identificar o usuário logado.', 'error')
+        return
+      }
+
+      try {
+        this.savingRepo = true
+
+        const { error } = await supabase
+          .from('solicitacao')
+          .insert({
+            id_equipamento: this.repoEpi.id_real,
+            id_usuario: this.userId,
+            quantidade_solicitada: quantidade,
+            justificativa: this.repoForm.justificativa?.trim() || null,
+            status: 'Pendente'
+          })
+
+        if (error) throw error
+
+        this.showToast('Solicitação de reposição enviada ao Administrador!', 'success')
+        this.fecharModalReposicao()
+      } catch (error) {
+        console.error('Erro ao solicitar reposição:', error)
+        this.showToast('Erro ao enviar a solicitação de reposição.', 'error')
+      } finally {
+        this.savingRepo = false
+      }
     },
 
     showToast(message, type = 'success') {
@@ -477,6 +536,51 @@ export default {
           <button class="btn-primary" @click="salvarEdicao">Salvar Alterações</button>
         </div>
   
+      </div>
+    </div>
+
+    <!-- Modal de Solicitação de Reposição (Operador) -->
+    <div class="modal-overlay" v-if="showRepoModal" @click.self="fecharModalReposicao">
+      <div class="modal-content modal-sm">
+        <div class="modal-header">
+          <h2>Solicitar Reposição</h2>
+          <button class="close-btn" @click="fecharModalReposicao">×</button>
+        </div>
+
+        <div class="modal-body" v-if="repoEpi">
+          <p class="repo-epi-info">
+            Equipamento: <strong>{{ repoEpi.nome }}</strong><br />
+            <span class="repo-epi-sub">Estoque atual: {{ repoEpi.quantidade }} un.</span>
+          </p>
+
+          <div class="form-group">
+            <label>Quantidade necessária para reposição</label>
+            <input
+              type="number"
+              v-model="repoForm.quantidade"
+              class="form-input"
+              min="1"
+              @keyup.enter="confirmarSolicitacao"
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Justificativa (opcional)</label>
+            <textarea
+              v-model="repoForm.justificativa"
+              class="form-input"
+              rows="3"
+              placeholder="Ex.: estoque abaixo do mínimo, alta demanda no setor..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-secondary" @click="fecharModalReposicao">Cancelar</button>
+          <button class="btn-primary" @click="confirmarSolicitacao" :disabled="savingRepo">
+            {{ savingRepo ? 'Enviando...' : 'Enviar Solicitação' }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -746,6 +850,32 @@ export default {
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Modal de reposição (menor) */
+.modal-sm {
+  max-width: 420px;
+}
+
+.repo-epi-info {
+  margin: 0 0 18px 0;
+  font-size: 14px;
+  color: #555;
+  line-height: 1.5;
+}
+.repo-epi-info strong {
+  color: #333;
+}
+.repo-epi-sub {
+  font-size: 13px;
+  color: #888;
 }
 
 /* Modal Styles */

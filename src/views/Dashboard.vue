@@ -52,7 +52,7 @@ const carregarDashboard = async () => {
     const trintaDias = new Date(hoje)
     trintaDias.setDate(trintaDias.getDate() + 30)
 
-    // 1. EPIs e CA (Validades)
+    // busca epi e validades
     const { data: epis, error: errEpi } = await supabase.from('epi').select('id, validade')
     if (errEpi) throw errEpi
 
@@ -68,27 +68,37 @@ const carregarDashboard = async () => {
     kpi.value.caVencidos = vencidos
     kpi.value.caVencendo = vencendo
 
-    // 2. Estoque e Itens Críticos
-    const { data: estoque, error: errEstoque } = await supabase.from('estoque').select('quantidade_atual, estoque_minimo, epi(nome)')
+    // estoque e itens críticos
+    const { data: estoque, error: errEstoque } = await supabase
+      .from('estoque')
+      .select('quantidade_atual, estoque_minimo, epi!inner(nome)')
+      .eq('epi.ativo', true)
     if (errEstoque) throw errEstoque
 
     let totalEmEstoque = 0
     let criticos = 0
 
-    // Top 5 itens com mais volume para o gráfico
-    const estoqueOrdenado = estoque.sort((a, b) => b.quantidade_atual - a.quantidade_atual)
-
     estoque.forEach(item => {
-      totalEmEstoque += item.quantidade_atual
-      if (item.quantidade_atual < item.estoque_minimo) criticos++
+      // força a conversão para número, tratando casos de null ou undefined
+      const qtdAtual = Number(item.quantidade_atual) || 0
+      const qtdMinima = Number(item.estoque_minimo) || 0
+
+      // soma para o total em estoque
+      totalEmEstoque += qtdAtual
+
+      // verifica os criticos
+      if (qtdAtual < qtdMinima) criticos++
     })
+
+    // 5 itens com mais volume para o gráfico
+    const estoqueOrdenado = estoque.sort((a, b) => (Number(b.quantidade_atual) || 0) - (Number(a.quantidade_atual) || 0))
 
     kpi.value.estoqueTotal = totalEmEstoque
     kpi.value.itensCriticos = criticos
-    chartEstoque.value.labels = estoqueOrdenado.slice(0, 5).map(e => e.epi.nome)
-    chartEstoque.value.data = estoqueOrdenado.slice(0, 5).map(e => e.quantidade_atual)
+    chartEstoque.value.labels = estoqueOrdenado.slice(0, 5).map(e => e.epi?.nome || 'EPI sem nome')
+    chartEstoque.value.data = estoqueOrdenado.slice(0, 5).map(e => Number(e.quantidade_atual) || 0)
 
-    // 3. Solicitações (Status e KPI de Pendentes)
+    // solicitações para o gráfico de pizza e KPI de pendentes
     const { data: solicitacoes, error: errSol } = await supabase.from('solicitacao').select('status')
     if (errSol) throw errSol
 
@@ -102,12 +112,12 @@ const carregarDashboard = async () => {
     kpi.value.solicitacoesPendentes = pendente
     chartSolicitacoes.value.data = [aprovado, pendente, reprovado]
 
-    // 4. Movimentações (Para o Feed de Histórico)
+    // feed de atividades - puxa as últimas movimentações, juntando com os nomes dos EPIs e usuários para exibir de forma amigável
     const { data: movs, error: errMov } = await supabase
       .from('movimentacao')
       .select('quantidade, tipo_movimentacao, create_at, epi(nome), usuario(nome)')
       .order('create_at', { ascending: false })
-      .limit(6) // Puxa as 6 últimas para preencher bem a lateral
+      .limit(6) // puxa as 6 últimas para preencher bem a lateral
     if (errMov) throw errMov
 
     activityFeed.value = movs
@@ -154,6 +164,7 @@ const formatarDataAmigavel = (dataString) => {
     </div>
 
     <header class="page-header">
+      <span class="badge">Dashboard</span>
       <h1 class="title">Visão Geral</h1>
       <p class="subtitle">Acompanhe a saúde do estoque e conformidades normativas.</p>
     </header>
@@ -280,6 +291,12 @@ const formatarDataAmigavel = (dataString) => {
   align-items: stretch;
 }
 
+/* Neutraliza a regra global "section { height: 100vh }" do global.css,
+   que estava esticando cada painel/section para uma tela inteira */
+.page section {
+  height: auto;
+}
+
 .error-banner {
   background: #fee2e2;
   color: #b91c1c;
@@ -296,20 +313,32 @@ const formatarDataAmigavel = (dataString) => {
   font-weight: 500;
 }
 
-/* header */
+/* header - padrão igual às outras telas */
 .page-header {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-bottom: auto;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: #f39d125c;
+  color: #f39c12;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 6px;
+  margin-bottom: 0;
 }
 
 .title {
   margin: 0;
-  font-size: 2.1rem;
-  color: #0f172a;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 2rem;
+  color: #333;
+  font-weight: 300;
+  font-family: var(--font-primary);
 }
 
 .subtitle {
@@ -323,7 +352,7 @@ const formatarDataAmigavel = (dataString) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 24px;
+  margin-bottom: 24px;
 }
 
 .alert-card {
@@ -375,6 +404,7 @@ const formatarDataAmigavel = (dataString) => {
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   height: auto !important;
+  margin-bottom: 24px;
 }
 
 .kpi-card {
@@ -452,8 +482,6 @@ const formatarDataAmigavel = (dataString) => {
   grid-template-columns: 2fr 1fr;
   gap: 24px;
   align-items: start;
-  flex-grow: 1;
-  margin-bottom: auto;
 }
 
 .charts-column {

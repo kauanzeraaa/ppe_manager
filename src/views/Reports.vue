@@ -1,792 +1,612 @@
 <script setup>
-import { computed, ref } from 'vue'
-import BarChart from '../components/BarChart.vue'
-import ReportCard from '../components/ReportCard.vue'
-import {
-  chartPalette,
-  epiLabels,
-  distributionData,
-  caStatusLabels,
-  caStatusData,
-  movementLabels,
-  movementConsumption,
-  movementReplenishment,
-  stockAvailable,
-  stockCritical
-} from '../data/reportData'
-import { useReportPdf } from '../composables/useReportPdf'
+import { computed, ref, onMounted } from 'vue'
+import { createClient } from '@supabase/supabase-js'
 
-const { reportContentRef, isGeneratingPdf, generateReportPdf } = useReportPdf()
-const selectedPeriod = ref('month')
-const selectedMovementType = ref('all')
-const employeeFilter = ref('')
-const epiFilter = ref('')
-const sectorFilter = ref('')
+// --- CONEXÃO SUPABASE ---
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
 
-const totalEPIs = computed(() => distributionData.reduce((a, b) => a + b, 0))
-const emUso = computed(() => movementConsumption.reduce((a, b) => a + b, 0))
-const disponiveis = computed(() => stockAvailable.reduce((a, b) => a + b, 0))
-const totalConformes = computed(() => caStatusData[0] || 0)
-const totalConformidade = computed(() => caStatusData.reduce((a, b) => a + b, 0))
-const conformanceRate = computed(() =>
-  totalConformidade.value ? `${Math.round((totalConformes.value / totalConformidade.value) * 100)}%` : '0%'
-)
-const caVencendo = computed(() => caStatusData[1] || 0)
-const caVencidos = computed(() => caStatusData[2] || 0)
-const caSemCadastro = computed(() => caStatusData[3] || 0)
-const criticalItems = computed(() => stockCritical.filter((v, i) => stockAvailable[i] <= v).length)
-const monthlyConsumption = computed(() => movementConsumption[movementConsumption.length - 1])
+// --- ESTADOS ---
+const loading = ref(true)
+const hasError = ref(false)
+const movimentacoes = ref([])
 
-const periodLabel = computed(() => {
-  if (selectedPeriod.value === 'today') return 'Hoje'
-  if (selectedPeriod.value === 'week') return 'Últimos 7 dias'
-  return 'Este mês'
+// --- INPUTS DOS FILTROS (O que o usuário está digitando/selecionando) ---
+const filtroClassificacao = ref('todas')
+const filtroUsuario = ref('')
+const filtroSetor = ref('todos')
+const filtroDataInicio = ref('')
+const filtroDataFim = ref('')
+
+// --- FILTROS APLICADOS (O que realmente vale para a tabela após clicar no botão) ---
+const filtrosAtivos = ref({
+  classificacao: 'todas',
+  usuario: '',
+  setor: 'todos',
+  dataInicio: '',
+  dataFim: ''
 })
 
-const movementTypeLabel = computed(() => {
-  if (selectedMovementType.value === 'entry') return 'Entradas'
-  if (selectedMovementType.value === 'exit') return 'Saídas'
-  return 'Todas as movimentações'
+onMounted(async () => {
+  await carregarMovimentacoes()
 })
 
-const distributionChartData = computed(() => [
-  {
-    label: 'Quantidade de EPIs',
-    data: distributionData,
-    backgroundColor: chartPalette.blueDark
-  }
-])
-
-function clearFilters() {
-  selectedPeriod.value = 'month'
-  selectedMovementType.value = 'all'
-  employeeFilter.value = ''
-  epiFilter.value = ''
-  sectorFilter.value = ''
+// Mapeia o tipo de receptor para a tabela e a coluna que representa o "setor"/origem.
+// Cada tipo guarda essa informação em uma coluna diferente:
+// funcionário -> setor, aluno -> curso, visitante -> empresa.
+const CONFIG_RECEPTOR = {
+  'Funcionário': { tabela: 'funcionario', colunaSetor: 'setor' },
+  'Aluno': { tabela: 'aluno', colunaSetor: 'curso' },
+  'Visitante': { tabela: 'visitante', colunaSetor: 'empresa' }
 }
 
-async function handleGeneratePdf() {
-  await generateReportPdf({
-    title: 'Relatórios e Conformidade de EPIs',
-    generatedAt: generatedAt.value
+const carregarMovimentacoes = async () => {
+  try {
+    loading.value = true
+    hasError.value = false
+
+    // Busca as movimentações + os dados auxiliares em paralelo.
+    // O receptor é polimórfico: o nome vive em aluno/funcionario/visitante conforme o tipo_receptor.
+    // O responsável pela movimentação é o usuário (operador) que a registrou (id_usuario).
+    const [movRes, epiRes, usuarioRes, alunoRes, funcRes, visitRes] = await Promise.all([
+      supabase.from('movimentacao').select('*').order('create_at', { ascending: false }),
+      supabase.from('epi').select('id, nome, classificacao, validade, certificado_autenticacao'),
+      supabase.from('usuario').select('id, nome'),
+      supabase.from('aluno').select('*'),
+      supabase.from('funcionario').select('*'),
+      supabase.from('visitante').select('*')
+    ])
+
+    const erro = movRes.error || epiRes.error || usuarioRes.error ||
+                 alunoRes.error || funcRes.error || visitRes.error
+    if (erro) throw erro
+
+    // Índices por id para fazer o "join" no cliente sem custo de busca repetida
+    const epiPorId = new Map((epiRes.data || []).map(e => [e.id, e]))
+    const usuarioPorId = new Map((usuarioRes.data || []).map(u => [u.id, u]))
+    const receptorPorTabela = {
+      aluno: new Map((alunoRes.data || []).map(r => [r.id, r])),
+      funcionario: new Map((funcRes.data || []).map(r => [r.id, r])),
+      visitante: new Map((visitRes.data || []).map(r => [r.id, r]))
+    }
+
+    movimentacoes.value = (movRes.data || []).map(m => {
+      const epi = epiPorId.get(m.id_equipamento) || {}
+      const responsavel = usuarioPorId.get(m.id_usuario)
+
+      const config = CONFIG_RECEPTOR[m.tipo_receptor]
+      const receptor = (config && receptorPorTabela[config.tabela].get(m.id_receptor)) || {}
+      const setor = config ? receptor[config.colunaSetor] : ''
+
+      return {
+        id: m.id,
+        create_at: m.create_at,
+        quantidade: m.quantidade,
+        receptor: receptor.nome || 'Receptor Desconhecido',
+        setor: setor || '',
+        responsavel: responsavel?.nome || 'Não informado',
+        epi: epi.nome || 'EPI Excluído',
+        classificacao: epi.classificacao || null,
+        validade: epi.validade || null,
+        ca: epi.certificado_autenticacao || null
+      }
+    })
+  } catch (error) {
+    console.error("Erro ao carregar histórico:", error)
+    hasError.value = true
+  } finally {
+    loading.value = false
+  }
+}
+
+// Quando clica no botão, ele transfere o que foi digitado para o motor de busca
+const aplicarFiltros = () => {
+  filtrosAtivos.value = {
+    classificacao: filtroClassificacao.value,
+    usuario: filtroUsuario.value,
+    setor: filtroSetor.value,
+    dataInicio: filtroDataInicio.value,
+    dataFim: filtroDataFim.value
+  }
+}
+
+// Extrai setores únicos baseado no histórico
+const setoresUnicos = computed(() => {
+  return [...new Set(movimentacoes.value.map(m => m.setor).filter(Boolean))].sort()
+})
+
+// Garante que "Descartável" e "Reutilizável" sempre apareçam, mesmo sem dados ainda
+const classificacoesUnicas = computed(() => {
+  const dynamicClasses = [...new Set(movimentacoes.value.map(m => m.classificacao).filter(Boolean))]
+  if (!dynamicClasses.includes('Reutilizável')) dynamicClasses.push('Reutilizável')
+  if (!dynamicClasses.includes('Descartável')) dynamicClasses.push('Descartável')
+  return dynamicClasses.sort()
+})
+
+// Função BLINDADA para checar validade
+const getStatusValidade = (validadeDateStr) => {
+  if (!validadeDateStr) return { label: 'Sem Validade', class: 'no-prazo' }
+  
+  const validade = new Date(validadeDateStr)
+  if (isNaN(validade)) return { label: 'Sem Validade', class: 'no-prazo' } 
+
+  validade.setHours(validade.getHours() + 12) 
+  const hoje = new Date()
+  
+  const diffTime = validade.getTime() - hoje.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) return { label: 'Vencido', class: 'vencido' }
+  if (diffDays <= 30) return { label: 'A Vencer', class: 'a-vencer' }
+  return { label: 'No Prazo', class: 'no-prazo' }
+}
+
+// Motor de busca e filtro da tabela
+const dadosFiltrados = computed(() => {
+  const { classificacao, usuario, setor, dataInicio, dataFim } = filtrosAtivos.value
+
+  return movimentacoes.value.filter(m => {
+    const matchUsuario = usuario === '' || 
+                         (m.receptor && m.receptor.toLowerCase().includes(usuario.toLowerCase()))
+                         
+    const matchClass = classificacao === 'todas' || 
+                       (m.classificacao && m.classificacao.toLowerCase() === classificacao.toLowerCase())
+                       
+    const matchSetor = setor === 'todos' || m.setor === setor
+    
+    let matchData = true
+    if (dataInicio && dataFim) {
+      const dataMov = new Date(m.create_at).getTime()
+      const start = new Date(dataInicio).getTime()
+      const end = new Date(dataFim).getTime() + 86399000 // Fim do dia
+      matchData = dataMov >= start && dataMov <= end
+    }
+
+    return matchUsuario && matchClass && matchSetor && matchData
   })
+})
+
+// Os Cartões agora só contam o que está VISÍVEL na tabela filtrada
+const kpis = computed(() => {
+  let vencidos = 0
+  let aVencer = 0
+
+  dadosFiltrados.value.forEach(m => {
+    const status = getStatusValidade(m.validade)
+    if (status.class === 'vencido') vencidos++
+    if (status.class === 'a-vencer') aVencer++
+  })
+
+  return { vencidos, aVencer }
+})
+
+const getInicial = (nome) => {
+  return nome ? nome.charAt(0).toUpperCase() : 'U'
 }
 
-const caChartData = computed(() => [
-  {
-    label: 'Situação do CA',
-    data: caStatusData,
-    backgroundColor: [
-      chartPalette.blueDark,
-      chartPalette.blue,
-      chartPalette.orange,
-      chartPalette.slate
-    ]
-  }
-])
+const imprimir = () => {
+  window.print()
+}
 
-const movementChartData = computed(() => [
-  {
-    label: 'Consumo',
-    data: movementConsumption,
-    backgroundColor: 'rgba(1, 88, 181, 0.14)',
-    borderColor: chartPalette.blue,
-    fill: true
-  },
-  {
-    label: 'Reabastecimento',
-    data: movementReplenishment,
-    backgroundColor: 'rgba(243, 156, 18, 0.12)',
-    borderColor: chartPalette.orange,
-    fill: true
-  }
-])
-
-const stockChartData = computed(() => [
-  {
-    label: 'Disponível',
-    data: stockAvailable,
-    backgroundColor: chartPalette.blueDark
-  },
-  {
-    label: 'Nível Crítico',
-    data: stockCritical,
-    backgroundColor: chartPalette.blueSoft
-  }
-])
-
-const generatedAt = computed(() =>
-  new Intl.DateTimeFormat('pt-BR', {
-    dateStyle: 'full',
-    timeStyle: 'short'
-  }).format(new Date())
-)
-
-  </script>
+// Função BLINDADA para formatar datas 
+const formatarData = (dataStr) => {
+  if (!dataStr) return '--/--/----'
+  const data = new Date(dataStr)
+  if (isNaN(data)) return '--/--/----'
+  return data.toLocaleDateString('pt-BR')
+}
+</script>
 
 <template>
-  <div class="page">
-    <div class="page-header">
-      <div class="page-header-info">
-        <span class="badge">Relatórios</span>
-        <h1 class="title">Relatórios e Conformidade de EPIs</h1>
-        <span class="version-note">Painel analítico para gestão executiva e decisão administrativa</span>
-      </div>
+  <div class="page" id="area-relatorio" v-if="!loading">
+    
+    <header class="page-header">
+      <span class="badge">Relatório</span>
+      <h1 class="title">Relatórios e Conformidade de EPIs</h1>
+    </header>
+
+    <div class="error-banner" v-if="hasError">
+      Erro ao carregar os dados. Verifique a conexão com o banco.
     </div>
 
-    <div ref="reportContentRef" class="report-content">
-      <section class="filters-panel">
-        <div class="filters-panel-header">
-          <div>
-            <h2 class="section-title">Filtros do relatório</h2>
-          </div>
-          <button type="button" class="clear-filters-btn" @click="clearFilters">
-            Limpar
-          </button>
-        </div>
-
-        <div class="filter-strip">
-          <div class="filter-field compact select-field">
-            <label>Período</label>
-            <select v-model="selectedPeriod">
-              <option value="today">Hoje</option>
-              <option value="week">7 dias</option>
-              <option value="month">Mês</option>
-            </select>
-          </div>
-          <div class="filter-field compact select-field">
-            <label>Movimentação</label>
-            <select v-model="selectedMovementType">
-              <option value="all">Todas</option>
-              <option value="entry">Entradas</option>
-              <option value="exit">Saídas</option>
-            </select>
-          </div>
-
-          <div class="filter-field">
-            <label>Funcionário</label>
-            <input v-model="employeeFilter" type="text" placeholder="Nome" />
-          </div>
-
-          <div class="filter-field">
-            <label>EPI</label>
-            <input v-model="epiFilter" type="text" placeholder="Equipamento" />
-          </div>
-
-          <div class="filter-field">
-            <label>Setor</label>
-            <input v-model="sectorFilter" type="text" placeholder="Setor" />
-          </div>
-        </div>
-      </section>
-
-      <div class="ca-banner">
-        <div class="ca-banner-copy">
-          <strong>Controle executivo de CA</strong>
-          <span>
-            {{ conformanceRate }} válidos, {{ caVencendo }} vencendo, {{ caVencidos }} vencidos e {{ caSemCadastro }} sem cadastro.
-          </span>
-        </div>
-        <span class="ca-banner-badge">NR-6</span>
-      </div>
-
-      <div class="metrics-grid">
-        <ReportCard
-          title="Total de EPIs cadastrados"
-          subtitle="Em estoque"
-          :value="totalEPIs"
-          icon="📦"
-          backgroundColor="#f39c12"
-          trend="up"
-          trend-value="Base geral"
-        />
-
-        <ReportCard
-          title="EPIs em uso"
-          subtitle="Movimentados no período"
-          :value="emUso"
-          icon="👷"
-          backgroundColor="#0158B5"
-          trend="stable"
-          trend-value="Saídas registradas"
-        />
-
-        <ReportCard
-          title="EPIs disponíveis"
-          subtitle="Saldo atual em estoque"
-          :value="disponiveis"
-          icon="🧰"
-          backgroundColor="#2B4A69"
-          trend="stable"
-          trend-value="Saldo físico"
-        />
-
-        <ReportCard
-          title="Itens críticos"
-          subtitle="No limite ou abaixo"
-          :value="criticalItems"
-          icon="⚠️"
-          backgroundColor="#0158B5"
-          :trend="criticalItems > 0 ? 'down' : 'stable'"
-          :trend-value="criticalItems > 0 ? criticalItems + ' itens' : 'Estável'"
-        />
-      </div>
-
-      <div class="charts-section">
-        <div class="chart-row">
-          <div class="chart-item full-width">
-            <BarChart
-              title="EPIs mais utilizados por tipo"
-              type="horizontalBar"
-              :labels="epiLabels"
-              :datasets="distributionChartData"
-              :height="320"
-              legend-position="bottom"
-              compact
-              backgroundColor="#2B4A69"
-            />
-          </div>
-        </div>
-
-        <div class="chart-row">
-          <div class="chart-item">
-            <BarChart
-              title="Situação do CA"
-              type="doughnut"
-              :labels="caStatusLabels"
-              :datasets="caChartData"
-              :height="320"
-              backgroundColor="#0158B5"
-              legend-position="bottom"
-            />
-          </div>
-
-          <div class="chart-item">
-            <BarChart
-              title="Movimentações por mês"
-              type="line"
-              :labels="movementLabels"
-              :datasets="movementChartData"
-              :height="320"
-              backgroundColor="#0158B5"
-              compact
-            />
-          </div>
-        </div>
-
-        <div class="chart-row">
-          <div class="chart-item full-width">
-            <BarChart
-              title="Disponível vs nível crítico"
-              type="horizontalBar"
-              :labels="epiLabels"
-              :datasets="stockChartData"
-              :height="320"
-              legend-position="bottom"
-              compact
-              backgroundColor="#2B4A69"
-            />
-          </div>
+    <section class="report-filters no-print">
+      <div class="filter-box">
+        <label>Período:</label>
+        <div class="date-inputs">
+          <input type="date" v-model="filtroDataInicio" />
+          <span>-</span>
+          <input type="date" v-model="filtroDataFim" />
         </div>
       </div>
 
-      <div class="summary-section">
-        <h2 class="summary-title">Resumo de Conformidade por Tipo</h2>
-        <p class="summary-subtitle">
-          {{ periodLabel }} · {{ movementTypeLabel }} · CA {{ conformanceRate }}
-        </p>
-        <div class="summary-table-wrapper">
-          <table class="summary-table">
-            <thead>
-              <tr>
-                <th>Tipo de EPI</th>
-                <th>Total</th>
-                <th>Conforme</th>
-                <th>Taxa %</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(label, index) in epiLabels" :key="index">
-                <td>{{ label }}</td>
-                <td>{{ distributionData[index] }}</td>
-                <td>{{ Math.round(distributionData[index] * (totalConformes / totalConformidade)) }}</td>
-                <td><span class="percentage">{{ conformanceRate }}</span></td>
-                <td><span class="status status-ok">✓ Conforme</span></td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="filter-box">
+        <label>Classificação</label>
+        <select v-model="filtroClassificacao">
+          <option value="todas">Todas</option>
+          <option v-for="cls in classificacoesUnicas" :key="cls" :value="cls">{{ cls }}</option>
+        </select>
+      </div>
+
+      <div class="filter-box">
+        <label>Usuário</label>
+        <div class="input-with-icon">
+          <input type="text" v-model="filtroUsuario" placeholder="Buscar por usuário" />
         </div>
       </div>
-    </div>
 
-    <button
-      type="button"
-      class="fab-export"
-      :disabled="isGeneratingPdf"
-      @click="handleGeneratePdf"
-    >
-      {{ isGeneratingPdf ? 'Preparando PDF...' : 'Gerar PDF' }}
-    </button>
+      <div class="filter-box">
+        <label>Setor / Origem</label>
+        <select v-model="filtroSetor">
+          <option value="todos">Todos</option>
+          <option v-for="setor in setoresUnicos" :key="setor" :value="setor">{{ setor }}</option>
+        </select>
+      </div>
+
+      <div class="filter-box action-box">
+        <button class="btn-filtrar" @click="aplicarFiltros">Filtrar</button>
+      </div>
+    </section>
+
+    <section class="kpi-cards">
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="dot red"></span>
+          <h3>EPIs Vencidos</h3>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-number">{{ kpis.vencidos }}</div>
+          <div class="kpi-icon red"><img src="../assets/alert.png" alt="" class="kpi-icon-img"></div>
+        </div>
+        <div class="kpi-footer">Necessário troca imediata</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="dot yellow"></span>
+          <h3>A Vencer</h3>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-number">{{ kpis.aVencer }}</div>
+          <div class="kpi-icon yellow"><img src="../assets/warning.png" alt="" class="kpi-icon-img"></div>
+        </div>
+        <div class="kpi-footer">Itens necessitam de atenção (30 dias)</div>
+      </div>
+
+      <div class="action-right no-print">
+        <button class="btn-pdf" @click="imprimir">
+          📄 Gerar PDF
+        </button>
+      </div>
+    </section>
+
+    <section class="table-section">
+      <div class="table-container">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Data de Entrega</th>
+              <th>Usuário</th>
+              <th>EPI</th>
+              <th>Setor / Origem</th>
+              <th>CA</th>
+              <th>Validade</th>
+              <th>Quantidade</th>
+              <th>Responsável</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="item in dadosFiltrados" :key="item.id">
+              <td>{{ formatarData(item.create_at) }}</td>
+              <td class="user-cell">
+                <div class="avatar">{{ getInicial(item.receptor) }}</div>
+                <span>{{ item.receptor }}</span>
+              </td>
+              <td>{{ item.epi }}</td>
+              <td>{{ item.setor || '—' }}</td>
+              <td>{{ item.ca || 'N/A' }}</td>
+              <td>{{ formatarData(item.validade) }}</td>
+              <td>{{ item.quantidade }} un</td>
+              <td class="text-muted font-weight-bold">{{ item.responsavel }}</td>
+            </tr>
+            <tr v-if="dadosFiltrados.length === 0">
+              <td colspan="8" class="empty-state">Nenhum registro encontrado com estes filtros.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </div>
+
+  <div v-else class="loading-state">
+    Carregando relatório de conformidade...
   </div>
 </template>
 
 <style scoped>
-.page {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  margin-top: -0.5rem;
-  padding-right: 0;
-  padding-bottom: 48px;
-  overflow-x: hidden;
-  position: relative;
-}
-
-.report-content {
-  min-width: 0;
-}
-
-.ca-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  background: #fff9ef;
-  border: 1px solid #f5dfae;
-  border-radius: 14px;
-  padding: 14px 16px;
-  margin-bottom: 16px;
-}
-
-.ca-banner-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.ca-banner-copy strong {
-  font-size: 0.9rem;
-  color: #243444;
-}
-
-.ca-banner-copy span {
-  font-size: 0.84rem;
-  color: #607086;
-}
-
-.ca-banner-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #f39c12;
-  color: #fff;
-  font-size: 0.74rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.filters-panel {
-  background: #ffffff;
-  border: 1px solid #edf1f5;
-  border-radius: 14px;
-  padding: 18px 20px 18px;
-  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
-  margin-bottom: 16px;
-}
-
-.filters-panel-header {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #edf1f5;
-}
-
-.section-title {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #243444;
-  font-weight: 700;
-}
-
-.clear-filters-btn {
-  border: 1px solid #d4e0ec;
-  background: #f8fafc;
-  color: #2b4a69;
-  border-radius: 10px;
-  padding: 7px 11px;
-  font-size: 0.76rem;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-  margin-left: 0;
-}
-
-.clear-filters-btn:hover {
-  background: #eef5fb;
-}
-
-.filter-strip {
-  display: flex;
-  align-items: flex-end;
-  gap: 18px;
-  width: 100%;
-}
-
-.filter-field {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  justify-content: flex-start;
-}
-
-.filter-field.compact {
-  width: 130px;
-  flex: 0 0 130px;
-}
-
-.filter-field.select-field {
-  width: 130px;
-  flex-basis: 130px;
-}
-
-.filter-field:not(.compact):not(.select-field) {
-  width: 100%;
-  flex: 1 1 0;
-  min-width: 170px;
-}
-
-.filter-field label {
-  font-size: 0.74rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #607086;
-}
-
-.filter-field input,
-.filter-field select {
-  width: 100%;
-  border: 1px solid #dce5ee;
-  border-radius: 11px;
-  padding: 0 12px;
-  height: 42px;
-  min-height: 42px;
-  box-sizing: border-box;
-  font-size: 0.86rem;
-  line-height: 1;
-  color: #243444;
-  background: #fff;
-  font-family: var(--font-secondary);
-}
-
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin-bottom: 28px;
+  flex: 0 0 auto !important;
 }
 
-.page-header-info {
+.page {
+  font-family: var(--font-secondary);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  max-width: 100%;
+  align-items: stretch !important;
+  width: 100% !important;
+  padding-bottom: 40px;
+  color: #333;
+  box-sizing: border-box;
+}
+
+.page section {
+  height: auto;
+  padding: 0;
 }
 
 .badge {
   display: inline-block;
-  background: rgba(243, 156, 18, 0.12);
+  background: #f39d125c;
   color: #f39c12;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  padding: 6px 14px;
-  border-radius: 999px;
+  padding: 5px 14px;
+  border-radius: 6px;
+  margin-bottom: 0;
 }
 
 .title {
-  font-size: clamp(1.9rem, 3vw, 2.5rem);
-  line-height: 1.15;
+  font-size: 2rem;
   font-weight: 300;
   color: #333;
-  margin: 0;
+  margin-bottom: 20px;
   font-family: var(--font-primary);
+  text-align: left;
 }
 
-.version-note {
-  display: inline-flex;
-  align-items: center;
-  padding: 7px 12px;
-  border-radius: 999px;
-  background: rgba(43, 74, 105, 0.08);
-  color: #2b4a69;
-  font-size: 0.88rem;
-  font-weight: 700;
-  font-family: var(--font-secondary);
-}
-
-.metrics-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
+/* Filtros Horizontais Corrigidos */
+.report-filters {
+  display: flex;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end !important;
+  justify-content: flex-start !important;
+  width: 100%;
   margin-bottom: 32px;
 }
 
-.charts-section {
-  margin-bottom: 30px;
-}
-
-.chart-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 24px;
-  margin-bottom: 24px;
-}
-
-.chart-item {
-  min-width: 0;
-  min-height: 340px;
-}
-
-.chart-item :deep(.chart-container) {
-  height: 100%;
-}
-
-.chart-item.full-width {
-  grid-column: 1 / -1;
-  min-height: 360px;
-}
-
-.summary-section {
-  background: linear-gradient(180deg, rgba(255, 243, 222, 0.3) 0%, rgba(255, 255, 255, 1) 40%), white;
-  border-radius: 18px;
-  padding: 28px;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
-  border: 1px solid #ede4d5;
-}
-
-.summary-title {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #243444;
-  margin: 0 0 24px 0;
-  font-family: var(--font-primary);
-}
-
-.summary-subtitle {
-  margin: -16px 0 18px;
-  color: #607086;
-  font-size: 0.9rem;
-  font-family: var(--font-secondary);
-}
-
-.summary-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: var(--font-secondary);
-  background: rgba(255, 255, 255, 0.86);
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-.summary-table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.summary-table thead {
-  background: linear-gradient(90deg, rgba(43, 74, 105, 0.08) 0%, rgba(243, 156, 18, 0.14) 100%);
-  border-bottom: 2px solid #f39c12;
-}
-
-.summary-table th {
-  padding: 14px 12px;
+.filter-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 120px;
   text-align: left;
-  font-weight: 600;
-  color: #243444;
-  font-size: 1.05rem;
 }
 
-.summary-table td {
-  padding: 14px 12px;
-  border-bottom: 1px solid #ece4d8;
-  font-size: 1rem;
-  color: #516374;
+.filter-box.action-box {
+  flex: 0 0 auto;
 }
 
-.summary-table tbody tr:nth-child(even) {
-  background: rgba(43, 74, 105, 0.03);
-}
-
-.summary-table tbody tr:hover {
-  background-color: rgba(243, 156, 18, 0.08);
-}
-
-.percentage {
-  font-weight: 600;
-  color: #c57d05;
-}
-
-.status {
-  display: inline-block;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  font-family: var(--font-secondary);
-}
-
-.status-ok {
-  background: #fff4df;
-  color: #9b6500;
-}
-
-.fab-export {
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
-  z-index: 1000;
-  border: none;
-  border-radius: 16px;
-  background: var(--color-blue-dark);
-  color: #fff;
-  padding: 16px 28px;
-  font-size: 1rem;
+.filter-box label {
+  font-size: 13px;
   font-weight: 700;
-  font-family: var(--font-secondary);
-  cursor: pointer;
-  box-shadow: 0 12px 32px rgba(43, 74, 105, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  color: #333;
+}
+
+.filter-box input, .filter-box select {
+  height: 42px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0 12px;
+  outline: none;
+  background: white;
+  color: #333;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.date-inputs {
   display: flex;
   align-items: center;
   gap: 8px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  padding: 0 8px;
+  height: 42px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.date-inputs input {
+  border: none;
+  height: 100%;
+  padding: 0;
+  width: 100%;
+  outline: none;
+}
+.date-inputs span { color: #888; }
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.input-with-icon input {
+  padding-right: 36px;
+}
+.search-icon {
+  position: absolute;
+  right: 12px;
+  color: #888;
+  font-size: 14px;
 }
 
-.fab-export:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 40px rgba(43, 74, 105, 0.45);
+.btn-filtrar {
+  background-color: #34495E;
+  color: white;
+  border: none;
+  height: 42px;
+  padding: 0 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  width: 100%;
+}
+.btn-filtrar:hover { background-color: #2C3E50; }
+
+/* Cards KPI */
+.kpi-cards {
+  display: flex;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  gap: 24px;
+  margin-bottom: 32px;
+  width: 100%;
 }
 
-.fab-export:disabled {
-  opacity: 0.7;
-  cursor: wait;
+.kpi-card {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 20px;
+  width: 260px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+  text-align: left;
 }
 
-@media (max-width: 1440px) {
-  .title {
-    font-size: 2.2rem;
-  }
+.kpi-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.kpi-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #222;
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.dot.red { background-color: #C0392B; }
+.dot.yellow { background-color: #F39C12; }
+
+.kpi-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 8px;
+}
+.kpi-number {
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 1;
+  color: #222;
+}
+.kpi-icon { font-size: 24px; }
+.kpi-footer { font-size: 12px; color: #666; }
+.kpi-icon-img {
+  width: 24px;
+  height: 24px;
 }
 
-@media (max-width: 1280px) {
-  .title {
-    font-size: 2rem;
-  }
+.action-right {
+  margin-left: auto !important; 
+  align-self: flex-end !important;
+}
+.btn-pdf {
+  background-color: #F4F6F7;
+  color: #333;
+  border: 1px solid #E5E8E8;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-pdf:hover { background-color: #EAEDED; }
 
-  .metrics-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .chart-row {
-    grid-template-columns: 1fr;
-  }
-
-  .filter-field.compact,
-  .filter-field.select-field {
-    width: 120px;
-    flex-basis: 120px;
-  }
-
-  .filter-field:not(.compact):not(.select-field) {
-    width: 100%;
-    flex-basis: 0;
-  }
+/* Tabela */
+.table-section {
+  width: 100%;
 }
 
-@media (max-width: 900px) {
-  .page-header {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .title {
-    font-size: 1.8rem;
-  }
-
-  .metrics-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .fab-export {
-    bottom: 24px;
-    right: 24px;
-    padding: 14px 24px;
-    font-size: 0.95rem;
-  }
-
-  .filters-panel-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .filter-strip {
-    flex-direction: column;
-    width: 100%;
-    gap: 12px;
-  }
+.table-container {
+  border-radius: 12px;
+  overflow-x: auto;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  background: white;
+  width: 100% !important;
 }
 
-@media (max-width: 768px) {
-  .title {
-    font-size: 1.7rem;
-  }
-
-  .metrics-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .summary-section {
-    padding: 20px 16px;
-  }
-
-  .filters-panel {
-    padding: 14px;
-  }
-
-  .fab-export {
-    bottom: 20px;
-    right: 20px;
-    padding: 14px 20px;
-    font-size: 0.9rem;
-    border-radius: 14px;
-  }
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
-@media (max-width: 480px) {
-  .title {
-    font-size: 1.6rem;
-  }
+.report-table th {
+  background-color: #F39C12;
+  color: white;
+  padding: 16px;
+  font-weight: 600;
+}
 
-  .badge {
-    font-size: 0.85rem;
-  }
+.report-table td {
+  padding: 16px;
+  border-bottom: 1px solid #F2F4F4;
+  vertical-align: middle;
+  color: #444;
+}
 
-  .fab-export {
-    bottom: 16px;
-    right: 16px;
-    left: 16px;
-    width: calc(100% - 32px);
-    justify-content: center;
-  }
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  color: #333;
+}
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #E5E7E9;
+  color: #7F8C8D;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.text-muted { color: #64748b; font-size: 0.9rem; }
+.font-weight-bold { font-weight: 600; }
+
+.empty-state { text-align: center; color: #888; padding: 40px !important; }
+</style>
+
+<style>
+@media print {
+  body * { visibility: hidden; }
+  #area-relatorio, #area-relatorio * { visibility: visible; }
+  #area-relatorio { position: absolute; left: 0; top: 0; width: 100vw; }
+  .no-print, .no-print * { display: none !important; }
+  .table-container { box-shadow: none !important; }
+  .report-table th { background-color: #F39C12 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .avatar { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 </style>

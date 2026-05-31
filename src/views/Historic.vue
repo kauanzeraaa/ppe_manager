@@ -258,7 +258,7 @@ export default {
                 </table>
               </div>
 
-              <!-- SOLICITAÇÕES -->
+              <!-- solicitações -->
               <div v-show="activeTab === 'solicitacoes'" class="tab-pane">
                 <table class="table">
                   <thead>

@@ -2,24 +2,24 @@
 import { computed, ref, onMounted } from 'vue'
 import { createClient } from '@supabase/supabase-js'
 
-// --- CONEXÃO SUPABASE ---
+// Conexao com o supabase usando variáveis de ambiente para segurança e flexibilidade
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-// --- ESTADOS ---
+// Estados principais
 const loading = ref(true)
 const hasError = ref(false)
 const movimentacoes = ref([])
 
-// --- INPUTS DOS FILTROS (O que o usuário está digitando/selecionando) ---
+// Estados dos filtros
 const filtroClassificacao = ref('todas')
 const filtroUsuario = ref('')
 const filtroSetor = ref('todos')
 const filtroDataInicio = ref('')
 const filtroDataFim = ref('')
 
-// --- FILTROS APLICADOS (O que realmente vale para a tabela após clicar no botão) ---
+// Aplica os filtros para a variável que realmente controla o que é mostrado na tabela e nos KPIs
 const filtrosAtivos = ref({
   classificacao: 'todas',
   usuario: '',
@@ -32,9 +32,8 @@ onMounted(async () => {
   await carregarMovimentacoes()
 })
 
-// Mapeia o tipo de receptor para a tabela e a coluna que representa o "setor"/origem.
-// Cada tipo guarda essa informação em uma coluna diferente:
-// funcionário -> setor, aluno -> curso, visitante -> empresa.
+// Mapeia o tipo de receptor para a tabela e a coluna que representa o "setor"/origem
+// Cada tipo guarda essa informação em uma coluna diferente: funcionário -> setor, aluno -> curso, visitante -> empresa
 const CONFIG_RECEPTOR = {
   'Funcionário': { tabela: 'funcionario', colunaSetor: 'setor' },
   'Aluno': { tabela: 'aluno', colunaSetor: 'curso' },
@@ -46,9 +45,9 @@ const carregarMovimentacoes = async () => {
     loading.value = true
     hasError.value = false
 
-    // Busca as movimentações + os dados auxiliares em paralelo.
-    // O receptor é polimórfico: o nome vive em aluno/funcionario/visitante conforme o tipo_receptor.
-    // O responsável pela movimentação é o usuário (operador) que a registrou (id_usuario).
+    // Busca as movimentações + os dados auxiliares em paralelo
+    // O receptor é polimórfico: o nome vive em aluno/funcionario/visitante conforme o tipo_receptor
+    // O responsável pela movimentação é o usuário (operador) que a registrou (id_usuario)
     const [movRes, epiRes, usuarioRes, alunoRes, funcRes, visitRes] = await Promise.all([
       supabase.from('movimentacao').select('*').order('create_at', { ascending: false }),
       supabase.from('epi').select('id, nome, classificacao, validade, certificado_autenticacao'),
@@ -124,7 +123,7 @@ const classificacoesUnicas = computed(() => {
   return dynamicClasses.sort()
 })
 
-// Função BLINDADA para checar validade
+// Função para checar validade
 const getStatusValidade = (validadeDateStr) => {
   if (!validadeDateStr) return { label: 'Sem Validade', class: 'no-prazo' }
   
@@ -167,7 +166,7 @@ const dadosFiltrados = computed(() => {
   })
 })
 
-// Os Cartões agora só contam o que está VISÍVEL na tabela filtrada
+// Os Cartões agora só contam o que está visível na tabela filtrada
 const kpis = computed(() => {
   let vencidos = 0
   let aVencer = 0
@@ -189,7 +188,7 @@ const imprimir = () => {
   window.print()
 }
 
-// Função BLINDADA para formatar datas 
+// Função para formatar datas 
 const formatarData = (dataStr) => {
   if (!dataStr) return '--/--/----'
   const data = new Date(dataStr)

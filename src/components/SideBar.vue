@@ -1,6 +1,7 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { createClient } from '@supabase/supabase-js'
 
 import homeIcon from '../assets/icons_sidebar/home.png'
 import stockIcon from '../assets/icons_sidebar/stock.png'
@@ -9,16 +10,23 @@ import recordIcon from '../assets/icons_sidebar/record.png'
 import historicIcon from '../assets/icons_sidebar/historic.png'
 import profileIcon from '../assets/icons_sidebar/profile.png'
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
 const route = useRoute()
 const isActive = ref(false)
+const userRole = ref(null)
 
 const topItems = [
   { label: 'Home', to: '/dashboard', icon: homeIcon, alt: 'Home', color: '#F39C12' },
   { label: 'Estoque', to: '/stock', icon: stockIcon, alt: 'Estoque', color: '#F39C12' },
-  { label: 'Relatórios', to: '/reports', icon: requestIcon, alt: 'Relatórios', color: '#F39C12' },
+  { label: 'Relatórios', to: '/reports', icon: requestIcon, alt: 'Relatórios', color: '#F39C12', role: 'Administrador' },
   { label: 'Movimentação', to: '/movement', icon: recordIcon, alt: 'Movimentações', color: '#F39C12' },
   { label: 'Histórico', to: '/historic', icon: historicIcon, alt: 'Histórico', color: '#F39C12' },
 ]
+
+const visibleTopItems = computed(() => topItems.filter(item => !item.role || item.role === userRole.value))
 
 const bottomItems = [
   { label: 'Perfil', to: '/profile', icon: profileIcon, alt: 'Perfil', color: '#F39C12' },
@@ -27,13 +35,46 @@ const bottomItems = [
 function isCurrentRoute(path) {
   return route.path === path
 }
+
+async function fetchUserRole() {
+  try {
+    const { data, error: authError } = await supabase.auth.getUser()
+    const user = data?.user
+
+    if (authError) {
+      console.error('Erro ao obter usuário autenticado:', authError)
+      return
+    }
+
+    if (user) {
+      const { data: roleData, error: roleError } = await supabase
+        .from('usuario')
+        .select('funcao')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      if (roleData) {
+        userRole.value = roleData.funcao
+      }
+      if (roleError) {
+        console.error('Erro ao buscar a função do usuário:', roleError)
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao buscar a função do usuário:', error)
+  }
+}
+
+onMounted(() => {
+  fetchUserRole()
+})
 </script>
 
 <template>
   <div class="sidebar" :class="{ expanded: isActive }" @mouseenter="isActive = true" @mouseleave="isActive = false">
     <ul class="nav-menu">
       <div class="nav-group">
-        <li v-for="item in topItems" :key="item.to" class="nav-item" :class="{ active: isCurrentRoute(item.to) }">
+        <li v-for="item in visibleTopItems" :key="item.to" class="nav-item" :class="{ active: isCurrentRoute(item.to) }">
           <router-link :to="item.to" :style="{ '--clr': item.color }" class="nav-link">
             <span class="nav-icon">
               <img :src="item.icon" :alt="item.alt" />

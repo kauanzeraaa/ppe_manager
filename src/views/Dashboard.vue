@@ -52,7 +52,7 @@ const carregarDashboard = async () => {
     const trintaDias = new Date(hoje)
     trintaDias.setDate(trintaDias.getDate() + 30)
 
-    // 1. EPIs e CA (Validades)
+    // busca epi e validades
     const { data: epis, error: errEpi } = await supabase.from('epi').select('id, validade')
     if (errEpi) throw errEpi
 
@@ -68,27 +68,37 @@ const carregarDashboard = async () => {
     kpi.value.caVencidos = vencidos
     kpi.value.caVencendo = vencendo
 
-    // 2. Estoque e Itens Críticos
-    const { data: estoque, error: errEstoque } = await supabase.from('estoque').select('quantidade_atual, estoque_minimo, epi(nome)')
+    // estoque e itens críticos
+    const { data: estoque, error: errEstoque } = await supabase
+      .from('estoque')
+      .select('quantidade_atual, estoque_minimo, epi!inner(nome)')
+      .eq('epi.ativo', true)
     if (errEstoque) throw errEstoque
 
     let totalEmEstoque = 0
     let criticos = 0
 
-    // Top 5 itens com mais volume para o gráfico
-    const estoqueOrdenado = estoque.sort((a, b) => b.quantidade_atual - a.quantidade_atual)
-
     estoque.forEach(item => {
-      totalEmEstoque += item.quantidade_atual
-      if (item.quantidade_atual < item.estoque_minimo) criticos++
+      // força a conversão para número, tratando casos de null ou undefined
+      const qtdAtual = Number(item.quantidade_atual) || 0
+      const qtdMinima = Number(item.estoque_minimo) || 0
+
+      // soma para o total em estoque
+      totalEmEstoque += qtdAtual
+
+      // verifica os criticos
+      if (qtdAtual < qtdMinima) criticos++
     })
+
+    // 5 itens com mais volume para o gráfico
+    const estoqueOrdenado = estoque.sort((a, b) => (Number(b.quantidade_atual) || 0) - (Number(a.quantidade_atual) || 0))
 
     kpi.value.estoqueTotal = totalEmEstoque
     kpi.value.itensCriticos = criticos
-    chartEstoque.value.labels = estoqueOrdenado.slice(0, 5).map(e => e.epi.nome)
-    chartEstoque.value.data = estoqueOrdenado.slice(0, 5).map(e => e.quantidade_atual)
+    chartEstoque.value.labels = estoqueOrdenado.slice(0, 5).map(e => e.epi?.nome || 'EPI sem nome')
+    chartEstoque.value.data = estoqueOrdenado.slice(0, 5).map(e => Number(e.quantidade_atual) || 0)
 
-    // 3. Solicitações (Status e KPI de Pendentes)
+    // solicitações para o gráfico de pizza e KPI de pendentes
     const { data: solicitacoes, error: errSol } = await supabase.from('solicitacao').select('status')
     if (errSol) throw errSol
 
@@ -102,12 +112,12 @@ const carregarDashboard = async () => {
     kpi.value.solicitacoesPendentes = pendente
     chartSolicitacoes.value.data = [aprovado, pendente, reprovado]
 
-    // 4. Movimentações (Para o Feed de Histórico)
+    // feed de atividades - puxa as últimas movimentações, juntando com os nomes dos EPIs e usuários para exibir de forma amigável
     const { data: movs, error: errMov } = await supabase
       .from('movimentacao')
       .select('quantidade, tipo_movimentacao, create_at, epi(nome), usuario(nome)')
       .order('create_at', { ascending: false })
-      .limit(6) // Puxa as 6 últimas para preencher bem a lateral
+      .limit(6) // puxa as 6 últimas para preencher bem a lateral
     if (errMov) throw errMov
 
     activityFeed.value = movs

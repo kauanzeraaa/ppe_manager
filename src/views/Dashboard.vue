@@ -164,6 +164,7 @@ const formatarDataAmigavel = (dataString) => {
     </div>
 
     <header class="page-header">
+      <span class="badge">Dashboard</span>
       <h1 class="title">Visão Geral</h1>
       <p class="subtitle">Acompanhe a saúde do estoque e conformidades normativas.</p>
     </header>
@@ -290,6 +291,12 @@ const formatarDataAmigavel = (dataString) => {
   align-items: stretch;
 }
 
+/* Neutraliza a regra global "section { height: 100vh }" do global.css,
+   que estava esticando cada painel/section para uma tela inteira */
+.page section {
+  height: auto;
+}
+
 .error-banner {
   background: #fee2e2;
   color: #b91c1c;
@@ -306,20 +313,32 @@ const formatarDataAmigavel = (dataString) => {
   font-weight: 500;
 }
 
-/* header */
+/* header - padrão igual às outras telas */
 .page-header {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-bottom: auto;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: #f39d125c;
+  color: #f39c12;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 6px;
+  margin-bottom: 0;
 }
 
 .title {
   margin: 0;
-  font-size: 2.1rem;
-  color: #0f172a;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 2rem;
+  color: #333;
+  font-weight: 300;
+  font-family: var(--font-primary);
 }
 
 .subtitle {
@@ -333,7 +352,7 @@ const formatarDataAmigavel = (dataString) => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 24px;
+  margin-bottom: 24px;
 }
 
 .alert-card {
@@ -385,6 +404,7 @@ const formatarDataAmigavel = (dataString) => {
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   height: auto !important;
+  margin-bottom: 24px;
 }
 
 .kpi-card {
@@ -462,8 +482,6 @@ const formatarDataAmigavel = (dataString) => {
   grid-template-columns: 2fr 1fr;
   gap: 24px;
   align-items: start;
-  flex-grow: 1;
-  margin-bottom: auto;
 }
 
 .charts-column {

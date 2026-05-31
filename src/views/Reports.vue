@@ -11,6 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 const loading = ref(true)
 const hasError = ref(false)
 const movimentacoes = ref([])
+const epis = ref([]) // EPIs cadastrados (ativos) — base dos cards de conformidade
 
 // Estados dos filtros
 const filtroClassificacao = ref('todas')
@@ -50,7 +51,7 @@ const carregarMovimentacoes = async () => {
     // O responsável pela movimentação é o usuário (operador) que a registrou (id_usuario)
     const [movRes, epiRes, usuarioRes, alunoRes, funcRes, visitRes] = await Promise.all([
       supabase.from('movimentacao').select('*').order('create_at', { ascending: false }),
-      supabase.from('epi').select('id, nome, classificacao, validade, certificado_autenticacao'),
+      supabase.from('epi').select('id, nome, classificacao, validade, certificado_autenticacao, ativo'),
       supabase.from('usuario').select('id, nome'),
       supabase.from('aluno').select('*'),
       supabase.from('funcionario').select('*'),
@@ -60,6 +61,9 @@ const carregarMovimentacoes = async () => {
     const erro = movRes.error || epiRes.error || usuarioRes.error ||
                  alunoRes.error || funcRes.error || visitRes.error
     if (erro) throw erro
+
+    // Guarda os EPIs ativos para alimentar os cards de conformidade (vencidos / a vencer)
+    epis.value = (epiRes.data || []).filter(e => e.ativo !== false)
 
     // Índices por id para fazer o "join" no cliente sem custo de busca repetida
     const epiPorId = new Map((epiRes.data || []).map(e => [e.id, e]))
@@ -166,13 +170,19 @@ const dadosFiltrados = computed(() => {
   })
 })
 
-// Os Cartões agora só contam o que está visível na tabela filtrada
+// Os cartões refletem a conformidade dos EPIs cadastrados (não das movimentações).
+// Cada EPI é contado uma única vez; respeitam o filtro de classificação aplicado.
 const kpis = computed(() => {
+  const { classificacao } = filtrosAtivos.value
   let vencidos = 0
   let aVencer = 0
 
-  dadosFiltrados.value.forEach(m => {
-    const status = getStatusValidade(m.validade)
+  epis.value.forEach(epi => {
+    const matchClass = classificacao === 'todas' ||
+                       (epi.classificacao && epi.classificacao.toLowerCase() === classificacao.toLowerCase())
+    if (!matchClass) return
+
+    const status = getStatusValidade(epi.validade)
     if (status.class === 'vencido') vencidos++
     if (status.class === 'a-vencer') aVencer++
   })

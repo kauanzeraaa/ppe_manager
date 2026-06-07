@@ -24,8 +24,8 @@ export default {
       toast: {
         show: false,
         message: "",
-        type: "success" // 'success' ou 'error'
-      }
+        type: "success", // 'success' ou 'error'
+      },
     };
   },
 
@@ -38,16 +38,18 @@ export default {
     // descobre quem é o usuário logado
     async fetchUsuarioLogado() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (user) {
           this.userId = user.id;
-          
+
           const { data } = await supabase
             .from("usuario")
             .select("nome")
             .eq("id", user.id)
             .maybeSingle();
-            
+
           if (data) {
             this.userName = data.nome;
           }
@@ -75,7 +77,6 @@ export default {
 
     // busca os nomes baseados no tipo escolhido
     async buscarReceptores() {
-
       // limpa a seleção anterior
       this.formulario.receptorId = "";
       this.receptoresDisponiveis = [];
@@ -85,8 +86,10 @@ export default {
       // descobre em qual tabela procurar
       let tabela = "";
       if (this.formulario.tipoReceptor === "Aluno") tabela = "aluno";
-      else if (this.formulario.tipoReceptor === "Funcionário") tabela = "funcionario";
-      else if (this.formulario.tipoReceptor === "Visitante") tabela = "visitante";
+      else if (this.formulario.tipoReceptor === "Funcionário")
+        tabela = "funcionario";
+      else if (this.formulario.tipoReceptor === "Visitante")
+        tabela = "visitante";
 
       try {
         const { data, error } = await supabase
@@ -98,7 +101,10 @@ export default {
         this.receptoresDisponiveis = data || [];
       } catch (err) {
         console.error(`Erro ao buscar ${tabela}:`, err);
-        this.showToast(`Erro ao carregar a lista de ${this.formulario.tipoReceptor}s.`, "error");
+        this.showToast(
+          `Erro ao carregar a lista de ${this.formulario.tipoReceptor}s.`,
+          "error",
+        );
       }
     },
 
@@ -111,13 +117,16 @@ export default {
         !this.formulario.tipoReceptor ||
         !this.formulario.receptorId
       ) {
-        this.showToast("Por favor, preencha todos os campos obrigatórios", "error");
+        this.showToast(
+          "Por favor, preencha todos os campos obrigatórios",
+          "error",
+        );
         return;
       }
 
       const qtdMovimentada = parseInt(this.formulario.quantidade);
       const epiSelecionado = this.equipamentosDisponiveis.find(
-        (e) => e.id === this.formulario.equipamentoId
+        (e) => e.id === this.formulario.equipamentoId,
       );
 
       if (!epiSelecionado) return;
@@ -126,8 +135,14 @@ export default {
         this.loading = true;
 
         // impedir saída de estoque que não existe (ENTREGA)
-        if (this.formulario.tipoMovimentacao === "Entrega" && epiSelecionado.quantidade_atual < qtdMovimentada) {
-          this.showToast(`Saldo insuficiente no almoxarifado! O estoque atual deste EPI é de apenas ${epiSelecionado.quantidade_atual} unidades.`, "error");
+        if (
+          this.formulario.tipoMovimentacao === "Entrega" &&
+          epiSelecionado.quantidade_atual < qtdMovimentada
+        ) {
+          this.showToast(
+            `Saldo insuficiente no almoxarifado! O estoque atual deste EPI é de apenas ${epiSelecionado.quantidade_atual} unidades.`,
+            "error",
+          );
           return;
         }
 
@@ -145,7 +160,7 @@ export default {
           // calcula o saldo real que a pessoa tem em posse dela atualmente
           let saldoPessoa = 0;
           if (historico) {
-            historico.forEach(mov => {
+            historico.forEach((mov) => {
               if (mov.tipo_movimentacao === "Entrega") {
                 saldoPessoa += mov.quantidade; // o que ela pegou
               } else if (mov.tipo_movimentacao === "Devolução") {
@@ -156,25 +171,26 @@ export default {
 
           // se a pessoa está tentando devolver mais do que ela tem em mãos
           if (qtdMovimentada > saldoPessoa) {
-            this.showToast(`Operação cancelada! Este receptor possui ${saldoPessoa} unidade(s) deste EPI em posse dele. Não é possível devolver ${qtdMovimentada}.`, "error");
+            this.showToast(
+              `Operação cancelada! Este receptor possui ${saldoPessoa} unidade(s) deste EPI em posse dele. Não é possível devolver ${qtdMovimentada}.`,
+              "error",
+            );
             return;
           }
         }
 
         // salvar a movimentação
-        const { error: errorMov } = await supabase
-          .from("movimentacao")
-          .insert({
-            id_equipamento: this.formulario.equipamentoId,
-            id_usuario: this.userId,
-            tipo_movimentacao: this.formulario.tipoMovimentacao,
-            quantidade: qtdMovimentada,
-            tipo_receptor: this.formulario.tipoReceptor,
-            id_receptor: this.formulario.receptorId,
-            observacao: this.formulario.observacao || "Sem observação",
-            create_at: new Date(this.formulario.data).toISOString(),
-            update_at: new Date().toISOString()
-          });
+        const { error: errorMov } = await supabase.from("movimentacao").insert({
+          id_equipamento: this.formulario.equipamentoId,
+          id_usuario: this.userId,
+          tipo_movimentacao: this.formulario.tipoMovimentacao,
+          quantidade: qtdMovimentada,
+          tipo_receptor: this.formulario.tipoReceptor,
+          id_receptor: this.formulario.receptorId,
+          observacao: this.formulario.observacao || "Sem observação",
+          create_at: new Date(this.formulario.data).toISOString(),
+          update_at: new Date().toISOString(),
+        });
 
         if (errorMov) throw errorMov;
 
@@ -193,19 +209,24 @@ export default {
 
         if (errorEstoque) throw errorEstoque;
 
-        this.showToast("Movimentação registrada e estoque atualizado com sucesso!", "success");
-        
-        this.limparFormulario();
-        await this.loadEpiDisponiveis(); 
+        this.showToast(
+          "Movimentação registrada e estoque atualizado com sucesso!",
+          "success",
+        );
 
+        this.limparFormulario();
+        await this.loadEpiDisponiveis();
       } catch (error) {
         console.error("Erro na operação:", error);
-        this.showToast("Erro ao salvar os dados. Verifique o console.", "error");
+        this.showToast(
+          "Erro ao salvar os dados. Verifique o console.",
+          "error",
+        );
       } finally {
         this.loading = false;
       }
     },
-    
+
     // função para limpar o forms
     limparFormulario() {
       this.formulario = {
@@ -216,23 +237,23 @@ export default {
         tipoReceptor: "",
         observacao: "",
         data: new Date().toISOString().slice(0, 16),
-      }
-      this.receptoresDisponiveis = []
+      };
+      this.receptoresDisponiveis = [];
     },
 
     // apresenta mensagem bonitinha na tela
-    showToast(message, type = 'success') {
+    showToast(message, type = "success") {
       this.toast.message = message;
       this.toast.type = type;
       this.toast.show = true;
-      
+
       // esconde automaticamente após 3 segundos
       setTimeout(() => {
         this.toast.show = false;
       }, 5000);
     },
   },
-}
+};
 </script>
 
 <template>
@@ -259,9 +280,18 @@ export default {
           </div>
           <div class="form-group">
             <label for="equipamento">Equipamento</label>
-            <select id="equipamento" v-model="formulario.equipamentoId" class="form-input" required>
+            <select
+              id="equipamento"
+              v-model="formulario.equipamentoId"
+              class="form-input"
+              required
+            >
               <option value="">Selecione...</option>
-              <option v-for="item in equipamentosDisponiveis" :key="item.id" :value="item.id">
+              <option
+                v-for="item in equipamentosDisponiveis"
+                :key="item.id"
+                :value="item.id"
+              >
                 {{ item.nome }} (Estoque: {{ item.quantidade_atual }})
               </option>
             </select>
@@ -280,10 +310,16 @@ export default {
         </div>
 
         <div class="form-row">
-
           <div class="form-group">
             <label for="responsavel">Responsável pela Movimentação</label>
-            <input type="text" id="responsavel" :value="userName || 'Carregando usuário...'" class="form-input" disabled style="background-color: #f5f5f5; cursor: not-allowed;" />
+            <input
+              type="text"
+              id="responsavel"
+              :value="userName || 'Carregando usuário...'"
+              class="form-input"
+              disabled
+              style="background-color: #f5f5f5; cursor: not-allowed"
+            />
           </div>
 
           <div class="form-group">
@@ -291,7 +327,7 @@ export default {
             <select
               id="tipoReceptor"
               v-model="formulario.tipoReceptor"
-              @change="buscarReceptores" 
+              @change="buscarReceptores"
               class="form-input"
               required
             >
@@ -301,7 +337,7 @@ export default {
               <option value="Visitante">Visitante</option>
             </select>
           </div>
-          
+
           <div class="form-group">
             <label for="receptor">Nome do Receptor</label>
             <select
@@ -312,7 +348,11 @@ export default {
               required
             >
               <option value="">
-                {{ formulario.tipoReceptor ? 'Selecione o nome...' : 'Escolha o tipo primeiro' }}
+                {{
+                  formulario.tipoReceptor
+                    ? "Selecione o nome..."
+                    : "Escolha o tipo primeiro"
+                }}
               </option>
               <option
                 v-for="pessoa in receptoresDisponiveis"
@@ -323,7 +363,6 @@ export default {
               </option>
             </select>
           </div>
-
         </div>
 
         <div class="form-row">
@@ -366,22 +405,21 @@ export default {
       </form>
     </div>
 
-    <div :class="['toast-notification', toast.type, { 'show': toast.show }]">
+    <div :class="['toast-notification', toast.type, { show: toast.show }]">
       {{ toast.message }}
     </div>
-
   </div>
 </template>
 
 <style scoped>
 .page {
-  width: 101.2%;
+  width: 100%;
   height: 100%;
-  margin-top: -1rem;
 }
 
 .badge {
   display: inline-block;
+  align-self: flex-start;
   background: #f39d125c;
   color: #f39c12;
   font-size: 1.1rem;
@@ -545,9 +583,9 @@ export default {
   color: white;
   font-weight: 500;
   font-size: 14px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   z-index: 9999;
-  
+
   transform: translateY(100px);
   opacity: 0;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -584,6 +622,18 @@ export default {
 
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .form-buttons {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 20px;
+    font-size: 13px;
   }
 }
 </style>

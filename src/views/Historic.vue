@@ -311,9 +311,9 @@ export default {
 
 <style scoped>
 .page {
-  width: 101.2%;
+  width: 100%;
   height: 100%;
-  margin-top: -1rem;
+
 }
 
 .badge {
@@ -488,4 +488,65 @@ export default {
 }
 .toast.success { background-color: #27AE60; }
 .toast.error { background-color: #C0392B; }
+
+/* ========================================================
+   ESTILOS DE RESPONSIVIDADE (MOBILE)
+======================================================== */
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 1.5rem; /* Título mais amigável para telas menores */
+    line-height: 1.2;
+  }
+
+  /* 1. ABAS: Divide o espaço igualmente entre os 3 botões */
+  .tabs-header {
+    gap: 0;
+    width: 100%;
+  }
+
+  .tab-button {
+    flex: 1; /* Força os botões a terem o mesmo tamanho */
+    padding: 12px 5px; /* Reduz o padding lateral para não quebrar linha */
+    font-size: 13px;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* 2. TABELA: Transforma a .tab-pane no container de rolagem horizontal */
+  .tab-pane {
+    overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch; /* Rolagem suave no iOS */
+    padding-bottom: 10px; /* Espaço para a barra de rolagem não cobrir os dados */
+  }
+
+  .table {
+    min-width: 680px; /* Força a tabela a manter uma largura mínima legível */
+    box-shadow: none; /* Remove sombras pesadas no mobile */
+  }
+
+  .table th, 
+  .table td {
+    padding: 10px 8px; /* Compacta o espaçamento interno das células */
+    font-size: 13px;
+  }
+
+  /* Melhora o clique do botão de ação do administrador no touch */
+  .btn-aceitar {
+    padding: 8px 14px;
+    font-size: 12px;
+    width: 100%;
+  }
+
+  /* 3. TOAST NOTIFICATION: Centralizada na parte inferior da tela */
+  .toast {
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    text-align: center;
+    box-sizing: border-box;
+  }
+}
+
 </style>

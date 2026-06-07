@@ -56,13 +56,23 @@ const showTopBarActions = computed(() => sidebarRoutes.includes(route.path))
   align-items: stretch; /* Obriga as telas de dentro a usarem 100% da largura */
   width: 100%;
 }
+
+/* Espaçamento no Desktop (com a sidebar fixa na esquerda) */
 .app-shell--with-sidebar .app-content {
   padding: 40px 40px 40px 140px;
 }
 
+/* ========================================================
+   ESTILOS DE RESPONSIVIDADE (MOBILE)
+======================================================== */
 @media (max-width: 768px) {
   .app-shell--with-sidebar .app-content {
-    padding: 24px 24px 24px 110px;
+    /* top: 85px (Empurra o conteúdo para baixo da linha dos botões)
+      right: 20px (Margem padrão da tela)
+      bottom: 24px 
+      left: 20px (Remove o recuo de 110px, já que a sidebar não ocupa espaço físico no mobile)
+    */
+    padding: 85px 20px 24px 20px;
   }
 }
 </style>

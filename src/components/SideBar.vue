@@ -16,6 +16,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 const route = useRoute()
 const isActive = ref(false)
+const isMobileOpen = ref(false) // Novo estado para o menu mobile
 const userRole = ref(null)
 
 const topItems = [
@@ -34,6 +35,11 @@ const bottomItems = [
 
 function isCurrentRoute(path) {
   return route.path === path
+}
+
+// Função para fechar o menu no mobile ao clicar em um link
+function closeMobileMenu() {
+  isMobileOpen.value = false
 }
 
 async function fetchUserRole() {
@@ -71,11 +77,21 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="sidebar" :class="{ expanded: isActive }" @mouseenter="isActive = true" @mouseleave="isActive = false">
+  <button class="hamburger-btn" @click="isMobileOpen = !isMobileOpen">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+
+  <div class="sidebar-overlay" :class="{ 'overlay-active': isMobileOpen }" @click="closeMobileMenu"></div>
+
+  <div class="sidebar" :class="{ expanded: isActive, 'mobile-open': isMobileOpen }" @mouseenter="isActive = true" @mouseleave="isActive = false">
     <ul class="nav-menu">
       <div class="nav-group">
         <li v-for="item in visibleTopItems" :key="item.to" class="nav-item" :class="{ active: isCurrentRoute(item.to) }">
-          <router-link :to="item.to" :style="{ '--clr': item.color }" class="nav-link">
+          <router-link :to="item.to" :style="{ '--clr': item.color }" class="nav-link" @click="closeMobileMenu">
             <span class="nav-icon">
               <img :src="item.icon" :alt="item.alt" />
             </span>
@@ -88,7 +104,7 @@ onMounted(() => {
 
       <div class="nav-group teste">
         <li v-for="item in bottomItems" :key="item.to" class="nav-item" :class="{ active: isCurrentRoute(item.to) }">
-          <router-link :to="item.to" :style="{ '--clr': item.color }" class="nav-link">
+          <router-link :to="item.to" :style="{ '--clr': item.color }" class="nav-link" @click="closeMobileMenu">
             <span class="nav-icon">
               <img :src="item.icon" :alt="item.alt" />
             </span>
@@ -110,7 +126,7 @@ onMounted(() => {
   background: #2b4a69;
   border-radius: 28px;
   overflow: hidden;
-  transition: width 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.38s cubic-bezier(0.4, 0, 0.2, 1), transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 100;
   display: flex;
 }
@@ -127,6 +143,7 @@ onMounted(() => {
   padding: 1.25rem 10px 2.5rem;
   margin: 0;
   list-style: none;
+  width: 100%;
 }
 
 .nav-group {
@@ -246,5 +263,86 @@ onMounted(() => {
 
 .nav-item:not(.active):hover .nav-label {
   color: rgba(255, 255, 255, 0.88);
+}
+
+
+/* ========================================================
+   ESTILOS DE RESPONSIVIDADE (MOBILE)
+======================================================== */
+
+.hamburger-btn {
+  display: none; /* Escondido por padrão no desktop */
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  /* Mostra o botão hambúrguer */
+  .hamburger-btn {
+    display: flex;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 90;
+    background: #2b4a69;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  .teste {
+    margin-bottom: 2rem; 
+  }
+
+  .hamburger-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Estilos do fundo escuro (overlay) */
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 95;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+  }
+
+  .sidebar-overlay.overlay-active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Modifica a sidebar para agir como um menu lateral retrátil (Drawer) */
+  .sidebar {
+    inset: 0 auto 0 0;
+    height: 100vh;
+    border-radius: 0 28px 28px 0;
+    transform: translateX(-100%); /* Esconde fora da tela por padrão */
+    width: 260px; /* Largura fixa quando aberto no mobile */
+    z-index: 100;
+  }
+
+  /* Quando ativado no mobile */
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  /* Garante que os textos apareçam no mobile, pois ele já abre expandido */
+  .nav-label {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 </style>

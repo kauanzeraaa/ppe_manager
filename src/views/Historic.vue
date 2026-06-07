@@ -179,7 +179,7 @@ export default {
 <template>
     <div class="page">
         <span class="badge">Histórico</span>
-        <h1 class="title">Verifique as Movimentações Passadas</h1>
+        <h1 class="title">Movimentações Passadas</h1>
 
         <div class="error-banner" v-if="error">{{ error }}</div>
 
@@ -494,9 +494,17 @@ export default {
 ======================================================== */
 
 @media (max-width: 768px) {
+  .badge {
+    font-size: 0.9rem;
+    padding: 4px 12px;
+  }
+
   .title {
-    font-size: 1.5rem; /* Título mais amigável para telas menores */
-    line-height: 1.2;
+    font-size: 1.6rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
   }
 
   /* 1. ABAS: Divide o espaço igualmente entre os 3 botões */

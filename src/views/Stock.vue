@@ -364,7 +364,7 @@ export default {
   
   <div class="page" @click="activeDropdown = null">
     <span class="badge">Estoque</span>
-    <h1 class="title">Equipamentos Cadastrados</h1>
+    <h1 class="title">Equipamentos Registrados</h1>
     
     <div class="filters-container">
       <div class="search-box">
@@ -1143,6 +1143,19 @@ textarea.form-input {
   /* O botão "Todos" ocupa a linha toda */
   .filter-btn:first-child {
     grid-column: span 2;
+  }
+
+  .badge {
+    font-size: 0.9rem;
+    padding: 4px 12px;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
   }
 }
 

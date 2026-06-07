@@ -212,7 +212,7 @@ const formatarData = (dataStr) => {
     
     <header class="page-header">
       <span class="badge">Relatório</span>
-      <h1 class="title">Relatórios e Conformidade de EPIs</h1>
+      <h1 class="title">Relatórios e Conformidade</h1>
     </header>
 
     <div class="error-banner" v-if="hasError">
@@ -633,12 +633,17 @@ const formatarData = (dataStr) => {
 
 /* Ajustes para Celulares (Telas pequenas) */
 @media (max-width: 768px) {
-  .page {
-    padding: 15px 10px; /* Dá um respiro nas laterais do mobile */
+  .badge {
+    font-size: 0.9rem;
+    padding: 4px 12px;
   }
 
   .title {
-    font-size: 1.5rem; /* Diminui um pouco o título */
+    font-size: 1.6rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
   }
 
   /* 1. FILTROS: Empilha todos os campos de busca */

@@ -165,7 +165,7 @@ const formatarDataAmigavel = (dataString) => {
 
     <header class="page-header">
       <span class="badge">Dashboard</span>
-      <h1 class="title">Visão Geral</h1>
+      <h1 class="title">Visão Geral do Sistema</h1>
       <p class="subtitle">Acompanhe a saúde do estoque e conformidades normativas.</p>
     </header>
 
@@ -405,7 +405,7 @@ const formatarDataAmigavel = (dataString) => {
   gap: 20px;
   height: auto !important;
   margin-bottom: -20px;
-  margin-top: -40px;
+  margin-top: -30px;
 }
 
 .kpi-card {
@@ -635,6 +635,19 @@ const formatarDataAmigavel = (dataString) => {
     grid-template-columns: 1fr;
     margin-bottom: 0;
     margin-top: -19px;
+  }
+
+  .badge {
+    font-size: 0.9rem;
+    padding: 4px 12px;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
   }
 }
 </style>

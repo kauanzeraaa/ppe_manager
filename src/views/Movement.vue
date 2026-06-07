@@ -258,11 +258,15 @@ export default {
 
 <template>
   <div class="page">
-    <span class="badge">Movimentações</span>
-    <h1 class="title">Movimentações de Estoque</h1>
+    <div class="page-header">
+      <span class="badge">Movimentação</span>
+      <h1 class="title">Movimentações de EPIs</h1>  
+      <p class="subtitle">
+        Registre as entregas e devoluções de EPIs para manter o controle do estoque atualizado.
+      </p>
+    </div>
 
     <div class="form-container">
-      <h2 class="form-title">Registrar Movimentação</h2>
       <form @submit.prevent="registrarMovimentacao" class="form">
         <div class="form-row">
           <div class="form-group">
@@ -417,6 +421,13 @@ export default {
   height: 100%;
 }
 
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
 .badge {
   display: inline-block;
   align-self: flex-start;
@@ -433,16 +444,21 @@ export default {
   font-size: 2rem;
   font-weight: 300;
   color: #333;
-  margin-bottom: 20px;
+  margin: 0;
   font-family: var(--font-primary);
+}
+
+.subtitle {
+  margin: 0;
+  color: #64748b;
+  font-size: 1rem;
 }
 
 /* Form */
 .form-container {
   background-color: #ffffff;
   border-radius: 20px;
-  padding: 1px 20px;
-  margin-bottom: 40px;
+  padding: 25px 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
@@ -522,7 +538,7 @@ export default {
   justify-content: flex-end;
   gap: 10px;
   margin-top: 0px;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 
 .form-actions {
@@ -634,6 +650,19 @@ export default {
   .btn-secondary {
     padding: 10px 20px;
     font-size: 13px;
+  }
+
+  .badge {
+    font-size: 0.9rem;
+    padding: 4px 12px;
+  }
+
+  .title {
+    font-size: 1.6rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
   }
 }
 </style>

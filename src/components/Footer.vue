@@ -5,10 +5,11 @@
                 <img src="../assets/logo/temporaryLogo.png" class="img_logo" alt="Logo PPE Manager">
             </div>
             <div class="msg-div">
-                <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s text ever since the 1500s</p>
+                <p>PPE Manager é a solução inteligente para gerenciamento de equipamentos de proteção individual. Rastreie, monitore e otimize seu estoque de EPIs com facilidade, garantindo a segurança de seus colaboradores.</p>
             </div>
             <div class="right-div">
-                <p>• Politica de Privacidade</p>
+                <p>• Política de Privacidade</p>
+                <p>• Termos de Serviço</p>
             </div>
         </section>
         <div  class="footer-rights">
@@ -28,23 +29,29 @@
     height: auto;
     justify-content: space-between;
     align-items:center;
-    background-color: #FFFFFF;
+    background-color: #ffffff;
     box-shadow: 0px 0px 31px #00000015;
     border-radius: 50px 50px 0 0;
     padding: 50px;
-    gap: 20px;
+    gap: 10px;
 }
 
 .msg-div{
-    width: 50%;
+    width: 90%;
+    text-align: center;
+}
+
+.right-div {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    margin-bottom: -20px;
 }
 
 .footer-rights{
     display: flex;
     width: 100%;
     bottom: 0;
-    height: 40px;
-    text-align: center;
     justify-content: center;
     align-items:center;
     background-color: #2B4A69;
@@ -61,4 +68,41 @@
         width: 100%;
     }
 }
+
+@media (max-width: 480px) {
+    .footer-info {
+        padding: 16px;
+        gap: 12px;
+    }
+
+    .logo-footer .img_logo {
+        max-width: 80px;
+    }
+
+    .msg-div {
+        width: 100%;
+    }
+
+    .msg-div p {
+        font-size: 0.75rem;
+        line-height: 1.4;
+        margin: 0;
+    }
+
+    .right-div p {
+        font-size: 0.7rem;
+        margin: 2px 0;
+        margin-bottom: 20px;
+    }
+
+    .footer-rights {
+        height: 35px;
+    }
+
+    .footer-rights p {
+        font-size: 0.7rem;
+        margin: 0;
+    }
+}
+
 </style>

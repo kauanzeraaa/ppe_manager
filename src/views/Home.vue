@@ -11,15 +11,15 @@ export default {
       accordionItems: [
         {
           title: "Nossa Missão",
-          text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+          text: "Simplificar e otimizar o gerenciamento de equipamentos de proteção individual, garantindo que profissionais tenham acesso rápido e seguro aos EPIs necessários para sua proteção.",
         },
         {
           title: "Nossa Visão",
-          text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+          text: "Ser a solução líder em gerenciamento de EPIs, contribuindo para reduzir acidentes de trabalho e promover ambientes laborais mais seguros em toda a região.",
         },
         {
           title: "Nosso Valor",
-          text: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
+          text: "Segurança em primeiro lugar, inovação contínua, transparência total e compromisso com a excelência em cada aspecto do gerenciamento de equipamentos de proteção.",
         },
       ],
     };
@@ -55,9 +55,7 @@ export default {
         <div class="bnr_divider"></div>
         <div class="bnr_dir">
           <p class="texto_dir_bnr">
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry. Lorem Ipsum has been the industry's standard dummy text
-            ever since the 1500s.
+            Controle total sobre seu estoque de EPIs. Rastreie cada equipamento, monitore prazos de validade, gere relatórios em tempo real e garanta conformidade com normas de segurança.
           </p>
           <router-link class="acc_ent" to="/login">Acesse sua conta</router-link>
         </div>
@@ -71,9 +69,7 @@ export default {
           <span class="badge">Sobre</span>
           <h2 class="main-title">Rastreabilidade <br />Completa dos Produtos</h2>
           <p class="description">
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry. Lorem Ipsum has been the industry's standard dummy text
-            ever since the 1500s.
+            Saiba exatamente onde está cada equipamento, quem o retirou, quando foi utilizado e quando chegará o prazo de validade. Nosso sistema oferece transparência total com um histórico completo de movimentações.
           </p>
           <button class="btn-account">Acesse sua Conta</button>
         </div>
@@ -109,7 +105,7 @@ export default {
           <div class="contact-header">
             <span class="badge">Contato</span>
             <h2>Entre em Contato</h2>
-            <p>Lorem Ipsum is simply dummy text of the printing and typesetting.</p>
+            <p>Tem dúvidas sobre como implementar o PPE Manager? Quer saber mais sobre nossas funcionalidades? Fale conosco!</p>
           </div>
 
         <div class="why-card">
@@ -121,7 +117,7 @@ export default {
             </div>
             <div class="why-text">
               <h4>Tire Dúvidas</h4>
-              <p>Lorem Ipsum is simply dummy text of the prin</p>
+              <p>Esclareça suas dúvidas sobre como usar o sistema, implementar em sua empresa ou aproveitar todas as funcionalidades disponíveis.</p>
             </div>
           </div>
 
@@ -130,8 +126,8 @@ export default {
               <span class="material-icons">help</span>
             </div>
             <div class="why-text">
-              <h4>Suporte</h4>
-              <p>Lorem Ipsum is simply dummy text of the</p>
+              <h4>Suporte Técnico</h4>
+              <p>Encontrou algum problema? Nossa equipe está pronta para ajudar você a resolver qualquer dificuldade.</p>
             </div>
           </div>
         </div>
@@ -141,11 +137,11 @@ export default {
           <div class="form-row">
             <div class="form-group">
               <label for="nome">Nome Completo</label>
-              <input type="text" id="nome" placeholder="Enter your name...." />
+              <input type="text" id="nome" placeholder="Seu nome completo" />
             </div>
             <div class="form-group">
               <label for="email">Email</label>
-              <input type="email" id="email" placeholder="Enter your email...." />
+              <input type="email" id="email" placeholder="seu.email@exemplo.com" />
             </div>
           </div>
 
@@ -164,7 +160,7 @@ export default {
 
           <div class="form-group form-group-full">
             <label for="mensagem">Mensagem</label>
-            <textarea id="mensagem" placeholder="Leave your message...."></textarea>
+            <textarea id="mensagem" placeholder="Descreva sua dúvida ou solicitação aqui..."></textarea>
           </div>
 
           <button class="btn-submit" type="button">Enviar Mensagem</button>
@@ -255,7 +251,7 @@ section {
 
 .texto_esq_bnr {
   font-family: var(--font-primary);
-  font-size: clamp(1.5rem, 2.8vw, 2.2rem);
+  font-size: clamp(1.25rem, 5vw, 2.2rem);
   line-height: 1.25;
   margin: 0;
   color: #1a1a2e;
@@ -428,7 +424,7 @@ section {
 ══════════════════════════════════════════ */
 .nav_contact {
   background: #f0f2f5;
-  padding: 80px 5%;
+  padding: 60px 5%;
 }
 
 .contact-left {
@@ -462,7 +458,7 @@ section {
 
 .contact-body {
   display: grid;
-  grid-template-columns: 0.55fr 1.8fr;
+  grid-template-columns: 1fr 1.8fr;
   gap: 36px;
   width: 100%;
   max-width: 1200px;
@@ -649,45 +645,93 @@ section {
   .col-accordion {
     grid-column: span 2;
   }
-}
 
-/* Tablet: contact body empilha */
-@media (max-width: 900px) {
+  /* Contact Section */
   .contact-body {
     grid-template-columns: 1fr;
+    gap: 28px;
   }
 
   .contact-left {
+    gap: 20px;
+  }
+}
+
+
+
+/* Tablet médio */
+@media (max-width: 820px) {
+  .bnr_desc {
+    width: 88%;
+    padding: 36px 32px;
+    gap: 24px;
+  }
+
+  .titulo_inf {
+    font-size: 0.8rem;
+    padding: 5px 14px;
+  }
+
+  .texto_dir_bnr {
+    font-size: 0.9rem;
+  }
+
+  .acc_ent {
+    padding: 12px 32px;
+    font-size: 0.9rem;
+  }
+
+  .main-title {
+    font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+  }
+
+  .why-card {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Contact Section */
+  .contact-body {
+    gap: 28px;
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
     gap: 16px;
   }
 
   .why-card {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
 
   .why-card h3 {
-    grid-column: span 3;
-    margin-bottom: 4px;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
   }
 
-  .why-item {
-    margin-bottom: 0;
+  .form-card {
+    padding: 28px;
   }
 }
 
-/* Mobile */
+/* Mobile grande */
 @media (max-width: 768px) {
+  section {
+    padding: 60px 20px;
+  }
+
   .nav_home {
     height: 100svh;
   }
 
   .bnr_desc {
     flex-direction: column;
-    width: 90%;
-    padding: 32px 28px;
-    gap: 0;
+    width: 92%;
+    padding: 28px 24px;
+    gap: 16px;
+    border-radius: 16px;
   }
 
   .bnr_esq,
@@ -695,22 +739,45 @@ section {
     width: 100%;
     align-items: center;
     text-align: center;
-    padding: 20px 0;
+    padding: 12px 0;
   }
 
   .bnr_divider {
-    width: 80%;
+    width: 60%;
     height: 1px;
     align-self: center;
+    margin: 4px 0;
+  }
+
+  .titulo_inf {
+    font-size: 0.75rem;
   }
 
   .texto_esq_bnr {
-    text-align: center;
+    font-size: clamp(1.2rem, 6vw, 1.8rem);
+  }
+
+  .texto_dir_bnr {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    max-width: 90%;
+  }
+
+  .acc_ent {
+    padding: 12px 28px;
+    font-size: 0.85rem;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  /* About Section */
+  .nav_about {
+    padding: 60px 20px;
   }
 
   .about-grid-container {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: 40px;
   }
 
   .col-accordion {
@@ -721,45 +788,570 @@ section {
     order: -1;
   }
 
+  .col-image img {
+    max-height: 300px;
+    object-fit: cover;
+  }
+
+  .main-title {
+    font-size: clamp(1.4rem, 5vw, 2rem);
+    margin-bottom: 16px;
+  }
+
+  .description {
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+
+  .btn-account {
+    width: 100%;
+    padding: 12px 24px;
+    font-size: 0.85rem;
+  }
+
+  .acc-item {
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+  }
+
+  .acc-header {
+    font-size: 0.9rem;
+  }
+
+  .acc-content {
+    font-size: 0.8rem;
+    margin-top: 10px;
+  }
+
+  /* Contact Section */
+  .nav_contact {
+    padding: 60px 20px;
+  }
+
+  .contact-header h2 {
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    margin: 8px 0;
+  }
+
+  .contact-header p {
+    font-size: 0.95rem;
+    max-width: 100%;
+  }
+
+  .contact-body {
+    gap: 32px;
+    grid-template-columns: 1fr;
+  }
+
+  .contact-left {
+    gap: 24px;
+  }
+
   .why-card {
-    display: block;
+    padding: 24px;
+    border-radius: 16px;
   }
 
   .why-card h3 {
+    font-size: 0.95rem;
     margin-bottom: 16px;
   }
 
   .why-item {
-    margin-bottom: 14px;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .why-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  .why-icon .material-icons {
+    font-size: 20px;
+  }
+
+  .why-text h4 {
+    font-size: 0.85rem;
+  }
+
+  .why-text p {
+    font-size: 0.8rem;
+  }
+
+  .form-card {
+    padding: 28px;
+    border-radius: 16px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    font-size: 0.9rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 0.9rem;
+    padding: 12px 14px;
+    border-radius: 8px;
+  }
+
+  .form-group textarea {
+    min-height: 120px;
+  }
+
+  .btn-submit {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    border-radius: 8px;
   }
 }
 
-/* Mobile pequeno */
-@media (max-width: 480px) {
+/* Mobile médio */
+@media (max-width: 600px) {
+  section {
+    padding: 50px 16px;
+  }
+
   .nav_home {
     height: 100dvh;
   }
 
   .bnr_desc {
-    width: 92%;
+    width: 95%;
     padding: 24px 20px;
+    gap: 12px;
+  }
+
+  .bnr_esq,
+  .bnr_dir {
+    padding: 8px 0;
+  }
+
+  .titulo_inf {
+    font-size: 0.7rem;
+    padding: 4px 12px;
+  }
+
+  .texto_esq_bnr {
+    font-size: clamp(1.1rem, 7vw, 1.6rem);
+    line-height: 1.3;
+  }
+
+  .texto_dir_bnr {
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+
+  .acc_ent {
+    padding: 10px 24px;
+    font-size: 0.8rem;
+    max-width: 260px;
+  }
+
+  .main-title {
+    font-size: clamp(1.2rem, 5.5vw, 1.8rem);
+    margin-bottom: 12px;
+  }
+
+  .description {
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+
+  .btn-account {
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 0.8rem;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+    padding: 4px 12px;
+    margin-bottom: 12px;
+  }
+
+  /* Contact Section */
+  .nav_contact {
+    padding: 50px 16px;
+  }
+
+  .contact-header h2 {
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+    margin: 6px 0;
+  }
+
+  .contact-header p {
+    font-size: 0.9rem;
+    max-width: 100%;
+  }
+
+  .contact-body {
+    gap: 24px;
+  }
+
+  .contact-left {
+    gap: 16px;
+  }
+
+  .why-card {
+    padding: 20px;
+    border-radius: 14px;
+    gap: 12px;
+  }
+
+  .why-card h3 {
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+  }
+
+  .why-item {
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .why-item:last-child {
+    margin-bottom: 0;
+  }
+
+  .why-icon {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+  }
+
+  .why-icon .material-icons {
+    font-size: 18px;
+  }
+
+  .why-text h4 {
+    font-size: 0.8rem;
+  }
+
+  .why-text p {
+    font-size: 0.75rem;
+  }
+
+  .form-card {
+    padding: 20px;
+    border-radius: 14px;
   }
 
   .form-row {
     grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 14px;
   }
 
-  .form-card {
-    padding: 4px 20px;
+  .form-group label {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
   }
 
-  .acc-item {
-    padding: 16px 18px;
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 0.85rem;
+    padding: 10px 12px;
+    border-radius: 6px;
+  }
+
+  .form-group-full {
+    margin-bottom: 14px;
+  }
+
+  .form-group textarea {
+    min-height: 100px;
   }
 
   .btn-submit {
     width: 100%;
-    margin-left: 0;
+    padding: 10px 16px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+    margin-top: 4px;
+  }
+
+  .select-wrapper::after {
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid #999;
+    border-bottom: 1.5px solid #999;
+    right: 10px;
+    top: 42%;
+  }
+}
+
+/* Mobile pequeno */
+@media (max-width: 480px) {
+  section {
+    padding: 40px 12px;
+  }
+
+  .nav_home {
+    height: 100dvh;
+  }
+
+  .bnr_img {
+    max-height: 450px;
+  }
+
+  .bnr_desc {
+    width: 85%;
+    padding: 20px 16px;
+    gap: 10px;
+    border-radius: 12px;
+    margin-top: -150px;
+  }
+
+  .bnr_esq,
+  .bnr_dir {
+    gap: 1rem;
+    padding: 4px 0;
+  }
+
+  .titulo_inf {
+    font-size: 0.65rem;
+    padding: 3px 10px;
+  }
+
+  .titulo_inf p {
+    margin: 0;
+  }
+
+  .texto_esq_bnr {
+    font-size: clamp(1rem, 6.5vw, 1.5rem);
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  .texto_dir_bnr {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  .bnr_divider {
+    width: 50%;
+    height: 0.8px;
+    margin: 2px 0;
+  }
+
+  .acc_ent {
+    padding: 9px 20px;
+    font-size: 0.75rem;
+    border-radius: 50px;
+    max-width: 240px;
+  }
+
+  /* About */
+  .nav_about {
+    padding: 40px 12px;
+    margin-top: -160px;
+  }
+
+  .col-image img {
+    max-height: 200px;
+    object-fit: cover;
+  }
+
+  .about-grid-container {
+    gap: 28px;
+  }
+
+  .main-title {
+    font-size: clamp(1rem, 6vw, 1.6rem);
+    margin-bottom: 10px;
+  }
+
+  .description {
+    font-size: 0.8rem;
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+
+  .btn-account {
+    padding: 9px 18px;
+    font-size: 0.75rem;
+  }
+
+  .acc-item {
+    padding: 14px 14px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+  }
+
+  .acc-header {
+    font-size: 0.85rem;
+  }
+
+  .acc-icon {
+    font-size: 0.6rem;
+  }
+
+  .acc-content {
+    font-size: 0.75rem;
+    margin-top: 8px;
+  }
+
+  /* Contact */
+  .nav_contact {
+    padding: 40px 12px;
+  }
+
+  .contact-header h2 {
+    font-size: clamp(1rem, 5.5vw, 1.6rem);
+    margin-bottom: 6px;
+  }
+
+  .contact-header p {
+    font-size: 0.8rem;
+    margin: 8px 0 0;
+  }
+
+  .badge {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+  }
+
+  .contact-body {
+    gap: 20px;
+    grid-template-columns: 1fr;
+  }
+
+  .contact-left {
+    gap: 12px;
+  }
+
+  .contact-header h2 {
+    font-size: clamp(1rem, 5.5vw, 1.6rem);
+    margin-bottom: 6px;
+  }
+
+  .contact-header p {
+    font-size: 0.8rem;
+    margin: 8px 0 0;
+  }
+
+  .why-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .why-card h3 {
+    font-size: 0.85rem;
+    margin-bottom: 10px;
+  }
+
+  .why-item {
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .why-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+
+  .why-icon .material-icons {
+    font-size: 18px;
+  }
+
+  .why-text h4 {
+    font-size: 0.75rem;
+    margin: 0 0 2px;
+  }
+
+  .why-text p {
+    font-size: 0.65rem;
+    margin: 0;
+  }
+
+  .form-card {
+    padding: 16px 12px;
+    border-radius: 12px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .form-group label {
+    font-size: 0.75rem;
+    margin-bottom: 2px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 0.75rem;
+    padding: 8px 10px;
+    border-radius: 6px;
+  }
+
+  .form-group textarea {
+    min-height: 90px;
+  }
+
+  .form-group-full {
+    margin-bottom: 12px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 0.75rem;
+    margin-top: 2px;
+    border-radius: 6px;
+  }
+
+  .select-wrapper::after {
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid #999;
+    border-bottom: 1.5px solid #999;
+    right: 12px;
+    top: 40%;
+  }
+
+  .form-group textarea {
+    min-height: 90px;
+  }
+
+  .form-group-full {
+    margin-bottom: 12px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 0.75rem;
+    margin-top: 2px;
+    border-radius: 6px;
+  }
+
+  .select-wrapper::after {
+    width: 6px;
+    height: 6px;
+    border-right: 1.5px solid #999;
+    border-bottom: 1.5px solid #999;
+    right: 12px;
+    top: 40%;
   }
 }
 </style>

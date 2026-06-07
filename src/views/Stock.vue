@@ -404,77 +404,75 @@ export default {
       </button>
     </div>
     
-    <table class="table">
-        <thead class="header-table">
-          <tr>
-          <th>ID</th>
-          <th>NOME/DESCRIÇÃO</th>
-          <th>CLASSIFICAÇÃO</th>
-          <th>TAMANHO</th>
-          <th>QUANTIDADE</th>
-          <th>VALIDADE</th>
-          <th></th>
-          </tr>
-        </thead>
-        <tbody class="content-table">
-            <tr v-if="loading">
-              <td colspan="7" style="text-align: center; padding: 20px; color: #777;">
-                Carregando estoque...
-              </td>
-            </tr>
+    <div class="table-responsive">
+      <table class="table">
+          <thead class="header-table">
+            <tr>
+            <th>ID</th>
+            <th>NOME/DESCRIÇÃO</th>
+            <th>CLASSIFICAÇÃO</th>
+            <th>TAMANHO</th>
+            <th>QUANTIDADE</th>
+            <th>VALIDADE</th>
+            <th class="sticky-col"></th> </tr>
+          </thead>
+          <tbody class="content-table">
+              <tr v-if="loading">
+                <td colspan="7" style="text-align: center; padding: 20px; color: #777;">
+                  Carregando estoque...
+                </td>
+              </tr>
 
-            <tr v-else-if="error">
-              <td colspan="7" style="text-align: center; padding: 20px; color: #c0392b;">
-                {{ error }}
-              </td>
-            </tr>
+              <tr v-else-if="error">
+                <td colspan="7" style="text-align: center; padding: 20px; color: #c0392b;">
+                  {{ error }}
+                </td>
+              </tr>
 
-            <tr v-else-if="equipamentosFiltrados.length === 0">
-              <td colspan="7" style="text-align: center; padding: 20px; color: #777;">
-                Nenhum equipamento encontrado com os filtros atuais.
-              </td>
-            </tr>
+              <tr v-else-if="equipamentosFiltrados.length === 0">
+                <td colspan="7" style="text-align: center; padding: 20px; color: #777;">
+                  Nenhum equipamento encontrado com os filtros atuais.
+                </td>
+              </tr>
 
-            <tr v-else v-for="equipamento in equipamentosFiltrados" :key="equipamento.id_real">
-              <td>{{ equipamento.id_visual }}</td>
-              <td class="name-cell">
-                <div class="product-name">{{ equipamento.nome }}</div>
-                <div class="product-description">{{ equipamento.descricao }}</div>
-              </td>
-              <td>{{ equipamento.classificacao }}</td>
-              <td>{{ equipamento.tamanho }}</td>
-              <td>
-                <span :class="['badge-qty', qtyBadgeClass(equipamento.quantidade, equipamento.estoque_minimo)]">
-                  {{ equipamento.quantidade }}
-                </span>
-              </td>
-              <td>
-                <span :class="['badge-date', dateBadgeClass(equipamento.validade)]">
-                  {{ formatDate(equipamento.validade) }}
-                </span>
-              </td>
-              <td class="actions-cell">
-                <button class="actions-btn" @click.stop="toggleDropdown(equipamento.id_real)" aria-label="Ações">⋮</button>
+              <tr v-else v-for="equipamento in equipamentosFiltrados" :key="equipamento.id_real">
+                <td>{{ equipamento.id_visual }}</td>
+                <td class="name-cell">
+                  <div class="product-name">{{ equipamento.nome }}</div>
+                  <div class="product-description">{{ equipamento.descricao }}</div>
+                </td>
+                <td>{{ equipamento.classificacao }}</td>
+                <td>{{ equipamento.tamanho }}</td>
+                <td>
+                  <span :class="['badge-qty', qtyBadgeClass(equipamento.quantidade, equipamento.estoque_minimo)]">
+                    {{ equipamento.quantidade }}
+                  </span>
+                </td>
+                <td>
+                  <span :class="['badge-date', dateBadgeClass(equipamento.validade)]">
+                    {{ formatDate(equipamento.validade) }}
+                  </span>
+                </td>
                 
-                <div class="dropdown-menu" v-if="activeDropdown === equipamento.id_real">
+                <td class="actions-cell sticky-col">
+                  <button class="actions-btn" @click.stop="toggleDropdown(equipamento.id_real)" aria-label="Ações">⋮</button>
                   
-                  <button class="dropdown-item" @click="abrirModalEdicao(equipamento)">
-                    Editar EPI
-                  </button>
-                  
-                  <button class="dropdown-item danger" v-if="userRole === 'Administrador'" @click="excluirEPI(equipamento)">
-                    Excluir
-                  </button>
-
-                  <button class="dropdown-item" v-if="userRole === 'Operador'" @click="solicitarReposicao(equipamento)">
-                    Solicitar Reposição
-                  </button>
-
-                </div>
-              </td>
-            </tr>
-        </tbody>
-    </table>
+                  <div class="dropdown-menu" v-if="activeDropdown === equipamento.id_real">
+                    <button class="dropdown-item" @click="abrirModalEdicao(equipamento)">
+                      Editar EPI
+                    </button>
+                    <button class="dropdown-item danger" v-if="userRole === 'Administrador'" @click="excluirEPI(equipamento)">
+                      Excluir
+                    </button>
+                    <button class="dropdown-item" v-if="userRole === 'Operador'" @click="solicitarReposicao(equipamento)">
+                      Solicitar Reposição
+                    </button>
+                  </div>
+                </td>
+              </tr>
+          </tbody>
+      </table>
+    </div>
 
     <div style="height: 60px; width: 100%; display: block; clear: both;"></div>
  
@@ -637,9 +635,8 @@ export default {
 }
 
 .page {
-  width: 101.2%;
+  width: 100%;
   height: 100%;
-  margin-top: -1rem;
   box-sizing: border-box;
 }
 .filters-container {
@@ -710,6 +707,7 @@ export default {
 
 .badge {
   display: inline-block;
+  align-self: flex-start;
   background: #f39d125c;
   color: #f39c12;
   font-size: 1.1rem;
@@ -1083,5 +1081,69 @@ textarea.form-input {
 .badge-date.green { background: #eafaf0; color: #2d8a40; }
 .badge-date.orange { background: #fff8ec; color: #b96900; }
 .badge-date.red { background: #fff0f0; color: #c0392b; }
+
+/* ========================================================
+   ESTILOS DE RESPONSIVIDADE (MOBILE)
+======================================================== */
+@media (max-width: 768px) {
+  /* Container que permite a rolagem horizontal apenas da tabela */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Rolagem suave no iOS */
+    border-radius: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Remove a sombra original da tabela para não duplicar com o container */
+  .table {
+    box-shadow: none;
+    min-width: 750px; /* Força a tabela a ter um tamanho mínimo, ativando a rolagem */
+    margin-bottom: 0;
+  }
+
+  /* Fixa a última coluna na direita para ela não sumir ao rolar a tabela */
+  .sticky-col {
+    position: sticky;
+    right: 0;
+    background-color: #fff; /* Fundo branco para cobrir o texto rolando por baixo */
+    z-index: 2;
+  }
+  
+  /* Mantém o fundo laranja no cabeçalho da coluna fixada */
+  .header-table .sticky-col {
+    background-color: #f39c12;
+    z-index: 3;
+  }
+
+  /* Ajuste no dropdown para ele não vazar da tela ao abrir na coluna fixada */
+  .dropdown-menu {
+    right: 90px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* Ajuste na organização dos botões de filtro no mobile */
+  .filters-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .filter-btn {
+    width: 100%;
+    padding: 8px 10px;
+  }
+  
+  /* O botão "Todos" ocupa a linha toda */
+  .filter-btn:first-child {
+    grid-column: span 2;
+  }
+}
 
 </style>

@@ -613,9 +613,89 @@ const formatarData = (dataStr) => {
 .font-weight-bold { font-weight: 600; }
 
 .empty-state { text-align: center; color: #888; padding: 40px !important; }
+
+/* ========================================================
+   ESTILOS DE RESPONSIVIDADE (MOBILE E TABLET)
+======================================================== */
+
+/* Ajustes para Tablets (Telas médias) */
+@media (max-width: 992px) {
+  .report-filters {
+    flex-wrap: wrap;
+  }
+  .filter-box {
+    flex: 1 1 45%; /* Faz os filtros ocuparem metade da tela cada */
+  }
+  .kpi-cards {
+    flex-wrap: wrap;
+  }
+}
+
+/* Ajustes para Celulares (Telas pequenas) */
+@media (max-width: 768px) {
+  .page {
+    padding: 15px 10px; /* Dá um respiro nas laterais do mobile */
+  }
+
+  .title {
+    font-size: 1.5rem; /* Diminui um pouco o título */
+  }
+
+  /* 1. FILTROS: Empilha todos os campos de busca */
+  .report-filters {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+  
+  .filter-box {
+    width: 100%;
+    flex: none;
+  }
+
+  .btn-filtrar {
+    margin-top: 10px;
+  }
+
+  /* 2. CARDS KPI: Empilha os cartões e ajusta o botão de PDF */
+  .kpi-cards {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px;
+  }
+  
+  .kpi-card {
+    width: 100%; /* Ocupa 100% da largura do celular */
+    box-sizing: border-box;
+  }
+
+  .action-right {
+    margin-left: 0 !important;
+    align-self: stretch !important;
+  }
+
+  .btn-pdf {
+    width: 100%;
+    justify-content: center;
+    padding: 14px; /* Aumenta a área de clique para o dedo */
+    font-size: 15px;
+  }
+
+  /* 3. TABELA: Garante a rolagem horizontal suave */
+  .table-container {
+    -webkit-overflow-scrolling: touch; /* Rolagem mais fluida no iOS */
+    border-radius: 8px;
+  }
+  
+  .report-table {
+    min-width: 1000px; /* Força a tabela a não se espremer, ativando o scroll */
+  }
+}
+
 </style>
 
 <style>
+
 @media print {
   body * { visibility: hidden; }
   #area-relatorio, #area-relatorio * { visibility: visible; }

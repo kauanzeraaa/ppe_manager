@@ -32,7 +32,6 @@ function confirmLogout() {
             </span>
         </button>
 
-        <!-- Modal de Logout -->
         <div v-if="showLogoutModal" class="modal-backdrop" @click="closeLogoutModal">
             <div class="modal-card" @click.stop>
                 <div class="decoration"></div>
@@ -49,17 +48,15 @@ function confirmLogout() {
     </section>
 </template>
 
-
 <style scoped>
     /* Estilos dos botões */
     .buttons {
         position: fixed;
-        top: -3.6rem;
+        top: -3.6rem; /* Posição original do seu desktop */
         right: 20px;
         display: flex;
         gap: 15px;
         z-index: 100;
-        display: flex;
         flex-direction: row;
     }
 
@@ -133,24 +130,21 @@ function confirmLogout() {
         margin: 0 0 10px;
         font-size: 22px;
         font-family: var(--font-primary);
-        font-weight: 200;
+        font-weight: 600; /* Mudei de 200 para 600 para dar mais leitura, mas pode reverter se preferir fino */
+        text-align: center;
     }
 
     .modal-text {
         margin: 0 0 20px;
         color: #666;
+        text-align: center;
     }
 
     .modal-actions {
         display: flex;
         justify-content: flex-end;
-        gap: 10px;
-    }
-
-    .modal-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 20px;
+        gap: 15px;
+        width: 100%;
     }
 
     .btn-cancel, .btn-confirm {
@@ -159,6 +153,11 @@ function confirmLogout() {
         padding: 12px 18px;
         cursor: pointer;
         font-weight: 600;
+        transition: opacity 0.2s;
+    }
+
+    .btn-cancel:hover, .btn-confirm:hover {
+        opacity: 0.85;
     }
 
     .btn-cancel {
@@ -169,5 +168,55 @@ function confirmLogout() {
     .btn-confirm {
         background: var(--color-blue-dark);
         color: #fff;
+    }
+
+    /* ========================================================
+       ESTILOS DE RESPONSIVIDADE (MOBILE)
+    ======================================================== */
+    @media (max-width: 768px) {
+        /* Traz o botão para uma posição visível e alinhada com o menu hambúrguer */
+        .buttons {
+            top: -25px;
+            right: 15px;
+            gap: 10px;
+        }
+
+        /* Ajusta o tamanho do botão para o padrão Mobile */
+        .button-notification, .button-configuration, .button-exit {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+        }
+
+        .icon img {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Ajustes de espaçamento no modal */
+        .modal-content {
+            padding: 20px 16px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+        }
+
+        .modal-text {
+            font-size: 15px;
+            margin: 0 0 15px;
+        }
+
+        /* Empilha os botões para facilitar o clique com o polegar */
+        .modal-actions {
+            flex-direction: column-reverse; /* Coloca o confirmar em cima e cancelar embaixo (opcional, padrão comum em mobile) */
+            gap: 10px;
+        }
+
+        .btn-cancel, .btn-confirm {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+        }
     }
 </style>

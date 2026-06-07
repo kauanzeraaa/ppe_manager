@@ -404,7 +404,8 @@ const formatarDataAmigavel = (dataString) => {
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
   height: auto !important;
-  margin-bottom: 24px;
+  margin-bottom: -20px;
+  margin-top: -40px;
 }
 
 .kpi-card {
@@ -632,6 +633,8 @@ const formatarDataAmigavel = (dataString) => {
 @media (max-width: 600px) {
   .kpi-grid {
     grid-template-columns: 1fr;
+    margin-bottom: 0;
+    margin-top: -19px;
   }
 }
 </style>

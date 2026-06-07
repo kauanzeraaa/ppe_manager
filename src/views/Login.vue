@@ -65,10 +65,6 @@ const login = async () => {
     loading.value = false;
   }
 };
-
-const goToRegister = () => {
-  router.push("/register");
-};
 </script>
 
 <template>
@@ -95,9 +91,6 @@ const goToRegister = () => {
           <div class="container-buttons">
             <button class="submit" @click="login" :disabled="loading">
               {{ loading ? "Entrando..." : "Entrar" }}
-            </button>
-            <button type="button" class="register" @click="goToRegister">
-              Cadastrar
             </button>
           </div>
           <p v-if="erro" class="error-message">{{ erro }}</p>
@@ -234,7 +227,7 @@ const goToRegister = () => {
 .container-buttons {
   display: flex;
   gap: 10px;
-  width: 90%;
+  width: 100%;
   margin: 0 auto;
   justify-content: space-between;
 }
@@ -244,6 +237,7 @@ const goToRegister = () => {
   color: #ffffff;
   border: none;
   padding: 12px 50px;
+  width: 100%;
   border-radius: 20px;
   font-size: 1rem;
   cursor: pointer;
@@ -253,19 +247,327 @@ const goToRegister = () => {
   box-shadow: 0px 4px 15px rgba(10, 9, 90, 0.9);
 }
 
-.register {
-  background-color: transparent;
-  color: var(--color-blue-dark);
-  border: 2px solid var(--color-blue-dark);
-  padding: 10px 45px;
-  border-radius: 20px;
-  font-size: 1rem;
-  cursor: pointer;
+/* ══════════════════════════════════════════
+   RESPONSIVE - TABLET
+══════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .page {
+    background: linear-gradient(
+      to right,
+      var(--color-blue-dark) 0%,
+      var(--color-blue-dark) 45%,
+      #ffffff 100%
+    );
+  }
+
+  .container {
+    width: 95%;
+    height: 75%;
+  }
+
+  .container img {
+    width: 50%;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .content form {
+    width: 85%;
+  }
 }
 
-.register:hover {
-  background-color: var(--color-blue-dark);
-  color: #ffffff;
-  box-shadow: 0px 4px 15px rgba(10, 9, 90, 0.9);
+/* ══════════════════════════════════════════
+   RESPONSIVE - TABLET MÉDIO
+══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .page {
+    background: linear-gradient(
+      180deg,
+      var(--color-blue-dark) 0%,
+      var(--color-blue-dark) 50%,
+      #ffffff 100%
+    );
+  }
+
+  .container {
+    width: 90%;
+    height: auto;
+    flex-direction: column;
+    margin: 20px auto;
+  }
+
+  .container img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 23px 23px 0px 0px;
+  }
+
+  .content {
+    width: 100%;
+    padding: 30px 20px;
+    box-sizing: border-box;
+  }
+
+  .title {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+  }
+
+  .content form {
+    width: 100%;
+    gap: 12px;
+  }
+
+  .content form label {
+    font-size: 0.95rem;
+  }
+
+  .content form input {
+    padding: 12px;
+    padding-right: 40px;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .container-buttons {
+    width: 100%;
+    gap: 8px;
+  }
+
+  .submit {
+    flex: 1;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+}
+@media (max-width: 600px) {
+  .page {
+    height: auto;
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .container {
+    width: 90%;
+    display: flex;
+    border-radius: 16px;
+    margin: 0 auto;
+    flex-direction: column;
+    box-shadow: none;
+  } 
+
+  .container img {
+    display: none;
+  }
+
+  .content {
+    width: 100%;
+    padding: 35px 25px;
+    box-sizing: border-box;
+  }
+
+  .back-button {
+    top: 15px;
+    left: 15px;
+    font-size: 1.6rem;
+  }
+
+  .title {
+    font-size: 1.7rem;
+    margin-bottom: 25px;
+  }
+
+  .content form {
+    width: 100%;
+    gap: 12px;
+  }
+
+  .content form label {
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .content form input {
+    padding: 12px;
+    padding-right: 38px;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    background-size: 18px 18px;
+  }
+
+  .container-buttons {
+    width: 100%;
+    gap: 10px;
+    margin: 20px 0 0 0;
+    justify-content: space-between;
+  }
+
+  .submit {
+    flex: 1;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    border-radius: 18px;
+  }
+
+  .error-message {
+    font-size: 0.85rem;
+    margin-top: 15px;
+  }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE - MOBILE MÉDIO
+══════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .page {
+    height: auto;
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .container {
+    width: 90%;
+    display: flex;
+    border-radius: 16px;
+    margin: 0 auto;
+    flex-direction: column;
+    box-shadow: none;
+  }
+
+  .container img {
+    display: none;
+  }
+
+  .content {
+    width: 100%;
+    padding: 40px 20px;
+    box-sizing: border-box;
+  }
+
+  .back-button {
+    top: 15px;
+    left: 15px;
+    font-size: 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+
+  .content form {
+    width: 100%;
+    gap: 15px;
+  }
+
+  .content form label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .content form input {
+    padding: 10px;
+    padding-right: 38px;
+    font-size: 0.9rem;
+    margin-bottom: 0;
+    background-size: 18px 18px;
+    background-position: right 12px center;
+    border: 1px solid #ddd;
+  }
+
+  .container-buttons {
+    width: 100%;
+    gap: 10px;
+    margin: 20px 0 0 0;
+    justify-content: center;
+    flex-direction: row;
+  }
+
+  .submit {
+    flex: 1;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+    border-radius: 18px;
+    min-width: 120px;
+  }
+
+  .error-message {
+    font-size: 0.85rem;
+    margin-top: 15px;
+    text-align: center;
+    color: #d32f2f;
+  }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE - MOBILE PEQUENO
+══════════════════════════════════════════ */
+@media (max-width: 360px) {
+  .container {
+    width: 90%;
+    margin: 0;
+  }
+
+  .container img {
+    display: none;
+  }
+
+  .content {
+    padding: 35px 16px;
+    box-sizing: border-box;
+  }
+
+  .back-button {
+    font-size: 1.3rem;
+    top: 12px;
+    left: 12px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+    margin-bottom: 20px;
+  }
+
+  .content form {
+    gap: 12px;
+  }
+
+  .content form label {
+    font-size: 0.85rem;
+  }
+
+  .content form input {
+    padding: 10px;
+    padding-right: 32px;
+    font-size: 0.85rem;
+    background-size: 16px 16px;
+  }
+
+  .container-buttons {
+    gap: 8px;
+    margin-top: 15px;
+  }
+
+  .submit {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    border-radius: 16px;
+  }
+
+  .error-message {
+    font-size: 0.8rem;
+    margin-top: 10px;
+  }
 }
 </style>

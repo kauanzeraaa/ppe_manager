@@ -26,9 +26,9 @@ const toggleMenu = () => {
         </button>
 
         <nav class="navigation_header" :class="{ open: isMenuOpen }">
-            <a href="#home" @click="isMenuOpen = false">Home</a>
-            <a href="#about" @click="isMenuOpen = false">Our Services</a>
-            <a href="#contact" @click="isMenuOpen = false">Contact</a>
+            <a href="#home" @click="isMenuOpen = false">Banner</a>
+            <a href="#about" @click="isMenuOpen = false">Sobre</a>
+            <a href="#contact" @click="isMenuOpen = false">Contato</a>
 
             <router-link class="login_button mobile_login" to="/login" @click="isMenuOpen = false">Login</router-link>
         </nav>
@@ -183,6 +183,49 @@ a {
   .mobile_login {
     display: block;
     margin-top: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 14px;
+    margin: 0.5rem 1rem;
+    border-radius: 40px;
+  }
+
+  .img_logo {
+    width: 120px;
+  }
+
+  .hamburger {
+    gap: 5px;
+  }
+
+  .hamburger .bar {
+    width: 25px;
+    height: 2.5px;
+  }
+
+  .navigation_header {
+    width: 95%;
+    padding: 20px 0;
+    border-radius: 16px;
+    gap: 16px;
+    margin-top: 8px;
+  }
+
+  .navigation_header a {
+    font-size: 14px;
+  }
+
+  .login_button {
+    padding: 6px 20px;
+    font-size: 13px;
+    border-radius: 20px;
+  }
+
+  .mobile_login {
+    margin-top: 8px;
   }
 }
 </style>

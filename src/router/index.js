@@ -3,7 +3,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 // Importando as views para as rotas
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
-import Register from '../views/Register.vue'
 import Dashboard from '../views/Dashboard.vue'
 import Historic from '../views/Historic.vue'
 import Profile from '../views/Profile.vue'
@@ -15,7 +14,6 @@ import Stock from '../views/Stock.vue'
 const routes = [
     { path : '/', component: Home },
     { path : '/login', component: Login },
-    { path : '/register', component: Register },
     { path : '/dashboard', component: Dashboard },
     { path : '/historic', component: Historic },
     { path : '/profile', component: Profile },
